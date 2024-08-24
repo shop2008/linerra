@@ -2,7 +2,8 @@
   "name": "linerra",
   "private": true,
   "workspaces": [
-    "agent-backend"
+    "agent-backend",
+    "backend-service"
   ],
   "dependencies": {},
   "devDependencies": {
