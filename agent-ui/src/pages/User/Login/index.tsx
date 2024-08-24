@@ -124,7 +124,7 @@ const Login: React.FC = () => {
     // 登录
 
     if (type === 'signIn') {
-      const signInResult = await signIn({ ...values });
+      const signInResult = await signIn({ ...values }, { skipLogout: true });
       if (signInResult.success) {
         const defaultLoginSuccessMessage = intl.formatMessage({
           id: 'pages.login.success',
@@ -205,6 +205,17 @@ const Login: React.FC = () => {
             />,
             <ActionIcons key="icons" />,
           ]}
+          submitter={{
+            searchConfig: {
+              submitText: type === 'signIn' ? intl.formatMessage({
+                id: 'loginForm.submitText',
+                defaultMessage: '登录',
+              }) : intl.formatMessage({
+                id: 'signUpForm.submitText',
+                defaultMessage: '注册',
+              }),
+            },
+          }}
           onFinish={async (values) => {
             await handleSubmit(values as API.Service.SignInParams | API.Service.SignUpParams);
           }}

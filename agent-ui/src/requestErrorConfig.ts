@@ -79,7 +79,7 @@ export const errorConfig: RequestConfig = {
         // 请求成功发出且服务器也响应了状态码，但状态代码超出了 2xx 的范围
         //message.error(`Response status:${error.response.status}`);
         //console.log(error.response);
-        if (error.response.status === 401 && getAccessToken()) {
+        if (error.response.status === 401 && !opts?.skipLogout) {
           message.error("Login expired, please login again.");
           clearSessionToken();
           history.push(loginPath);

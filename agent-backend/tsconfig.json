@@ -16,7 +16,7 @@
     ],
     "paths": {
       "@backend-service/*": [
-        "../../backend-service/src/*"
+        "../backend-service/src/*"
       ]
     }
   },
