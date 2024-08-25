@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { accessVerifier } from '../../../backend-service/src/utils/tokenVerifier';
+import { accessVerifier } from '@linerra/system/src/utils/tokenVerifier';
 
 
 export const auth = async (req: Request, res: Response, next: NextFunction) => {

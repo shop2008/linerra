@@ -1,29 +1,30 @@
 {
+  "extends": "../../tsconfig.settings.json",
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
     "outDir": "./dist",
-    "rootDir": "../",
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "typeRoots": [
-      // "./src/types",
-      // "./node_modules/@types",
-      "../backend-service/src/types",
-      "../backend-service/node_modules/@types"
-    ],
     "paths": {
-      "@backend-service/*": [
-        "../backend-service/src/*"
+      "system": [
+        "../system/src"
       ]
     }
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "src"
   ],
   "exclude": [
     "node_modules"
-  ]
+  ],
+  "references": [
+    {
+      "path": "../system"
+    }
+  ],
 }

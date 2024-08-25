@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2017",
+    "lib": [
+      "es2017"
+    ],
+    "moduleResolution": "node",
+    "rootDir": "./backend",
+    "baseUrl": "./backend",
+    "paths": {
+      "@linerra/*": [
+        "./*/src"
+      ]
+    },
+    "typeRoots": [
+      "./backend/system/src/types",
+      "./node_modules/@types"
+    ],
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "noImplicitReturns": true,
+    "preserveConstEnums": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true
+  }
+}

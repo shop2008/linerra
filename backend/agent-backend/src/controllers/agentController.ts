@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
-import { CognitoService } from '../../../backend-service/src/services/cognitoService';
-import logger from '../../../backend-service/src/utils/logger';
-import { ErrorShowType } from '../../../backend-service/src/enum/errorShowType';
-import { SessionService } from '../../../backend-service/src/services/sessionService';
-import { accessVerifier, idTokenVerifier } from '../../../backend-service/src/utils/tokenVerifier';
+import { CognitoService } from '@linerra/system/src/services/cognitoService';
+import logger from '@linerra/system/src/utils/logger';
+import { ErrorShowType } from '@linerra/system/src/enum/errorShowType';
+import { SessionService } from '@linerra/system/src/services/sessionService';
+import { accessVerifier, idTokenVerifier } from '@linerra/system/src/utils/tokenVerifier';
+
 
 const cognitoService = CognitoService.instance;
 const sessionService = SessionService.instance;

@@ -119,5 +119,5 @@ resources:
           AttributeName: expirationTime
           Enabled: true
 
-package:
-  individually: true
+#package:
+#  individually: true

@@ -3,12 +3,12 @@ import express from "express";
 import expressWinston from "express-winston";
 import dotenv from 'dotenv';
 import agentRoutes from "./routes/agentRoutes";
-import { errorHandler } from "../../backend-service/src/middlewares/errorHandler";
-import logger from "../../backend-service/src/utils/logger";
-import { performanceMonitor } from "../../backend-service/src/middlewares/performanceMonitor";
-import { trace } from "../../backend-service/src/middlewares/trace";
+import { errorHandler } from "@linerra/system/src/middlewares/errorHandler";
+import logger from "@linerra/system/src/utils/logger";
+import { performanceMonitor } from "@linerra/system/src/middlewares/performanceMonitor";
+import { trace } from "@linerra/system/src/middlewares/trace";
 import { Request, Response } from 'express';
-import { ErrorShowType } from "../../backend-service/src/enum/errorShowType";
+import { ErrorShowType } from "@linerra/system/src/enum/errorShowType";
 
 dotenv.config();
 

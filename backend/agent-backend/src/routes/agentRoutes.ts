@@ -1,8 +1,8 @@
 import express from 'express';
 import { AgentController } from '../controllers/agentController';
 import { auth } from '../middlewares/auth';
-import { validate } from '../../../backend-service/src/middlewares/validate';
-import { signUpSchema, signInSchema } from '../../../backend-service/src/utils/validationSchemas';
+import { validate } from '@linerra/system/src/middlewares/validate';
+import { signUpSchema, signInSchema } from '@linerra/system/src/utils/validationSchemas';
 
 const router = express.Router();
 const agentController = new AgentController();
