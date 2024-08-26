@@ -51,3 +51,15 @@ export async function refreshToken(options?: Record<string, any>) {
     ...(options || {}),
   });
 }
+
+export async function signInWithGoogle(body: { googleToken: string }, options?: Record<string, any>) {
+  return request<API.Service.SignInResult>('/api/agents/signInWithGoogle', {
+    method: 'POST',
+    headers: {
+      isToken: false,
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}

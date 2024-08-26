@@ -9,6 +9,7 @@ import { errorConfig } from './requestErrorConfig';
 //import { currentUser as queryCurrentUser } from '@/services/ant-design-pro/api';
 import React from 'react';
 import { getUserInfo } from './services/service/agent';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
 
@@ -28,7 +29,8 @@ export async function getInitialState(): Promise<{
       });
       if (response.data) {
         response.data.name = 'test';
-        response.data.avatar = 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png';
+        response.data.avatar =
+          'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png';
       }
       return response.data as API.CurrentUser;
     } catch (error) {
@@ -96,11 +98,11 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     ],
     links: isDev
       ? [
-        <Link key="openapi" to="/umi/plugin/openapi" target="_blank">
-          <LinkOutlined />
-          <span>OpenAPI 文档</span>
-        </Link>,
-      ]
+          <Link key="openapi" to="/umi/plugin/openapi" target="_blank">
+            <LinkOutlined />
+            <span>OpenAPI 文档</span>
+          </Link>,
+        ]
       : [],
     menuHeaderRender: undefined,
     // 自定义 403 页面
@@ -139,3 +141,9 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
 export const request = {
   ...errorConfig,
 };
+
+export function rootContainer(container: any) {
+  const clientId = process.env.GOOGLE_CLIENT_ID || '';
+  console.log('client', clientId);
+  return <GoogleOAuthProvider clientId={clientId}>{container}</GoogleOAuthProvider>;
+}

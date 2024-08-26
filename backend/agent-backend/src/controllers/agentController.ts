@@ -33,6 +33,17 @@ export class AgentController {
     }
   }
 
+  async signInWithGoogle(req: Request, res: Response) {
+    try {
+      const { googleToken } = req.body;
+      const result = await cognitoService.signInWithGoogle(googleToken);
+      res.ok(result);
+    } catch (error) {
+      logger.error("Error signing in with Google", error);
+      res.fail('Authentication failed', 'AuthenticationFailed', ErrorShowType.ERROR_MESSAGE, 401);
+    }
+  }
+
   async getUserInfo(req: Request, res: Response) {
     try {
       const result = await cognitoService.getUser(req.context.accessToken);
@@ -60,7 +71,7 @@ export class AgentController {
         return res.fail('Token expired', 'TokenExpired', ErrorShowType.ERROR_MESSAGE, 401);
       }
 
-      // 检查是否有一个token距离过期时间不到15分钟
+      // 检查是��有一个token距离过期时间不到15分钟
       const fifteenMinutesInMs = 15 * 60 * 1000;
       const accessTokenExpiresIn = accessPayload.exp * 1000 - now;
       const idTokenExpiresIn = idPayload.exp * 1000 - now;

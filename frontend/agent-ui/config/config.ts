@@ -153,4 +153,7 @@ export default defineConfig({
   },
   esbuildMinifyIIFE: true,
   requestRecord: {},
+  define: {
+    'process.env.GOOGLE_CLIENT_ID': process.env.GOOGLE_CLIENT_ID,
+  },
 });

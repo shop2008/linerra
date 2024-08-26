@@ -1,5 +1,5 @@
 import { Footer } from '@/components';
-import { signIn, signUp } from '@/services/service/agent';
+import { signIn, signUp, signInWithGoogle } from '@/services/service/agent';
 import { getFakeCaptcha } from '@/services/ant-design-pro/login';
 import {
   AlipayCircleOutlined,
@@ -9,7 +9,8 @@ import {
   TaobaoCircleOutlined,
   UserOutlined,
   WeiboCircleOutlined,
-  GoogleOutlined
+  GoogleOutlined,
+  GoogleCircleFilled,
 } from '@ant-design/icons';
 import {
   LoginForm,
@@ -18,12 +19,13 @@ import {
   ProFormText,
 } from '@ant-design/pro-components';
 import { FormattedMessage, history, SelectLang, useIntl, useModel, Helmet } from '@umijs/max';
-import { Alert, message, Tabs } from 'antd';
+import { Alert, message, Tabs, Button } from 'antd';
 import Settings from '../../../../config/defaultSettings';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { flushSync } from 'react-dom';
 import { createStyles } from 'antd-style';
 import { clearSessionToken, setSessionToken } from '@/access';
+import { useGoogleLogin } from '@react-oauth/google';
 
 const useStyles = createStyles(({ token }) => {
   return {
@@ -61,16 +63,21 @@ const useStyles = createStyles(({ token }) => {
   };
 });
 
-console.log(process.env.API_URL);
+console.log('API_URL', process.env.API_URL);
 
-const ActionIcons = () => {
+const ActionIcons = ({ googleLogin }: { googleLogin: () => void }) => {
   const { styles } = useStyles();
 
   return (
     <>
-      <AlipayCircleOutlined key="AlipayCircleOutlined" className={styles.action} />
+      {/* <AlipayCircleOutlined key="AlipayCircleOutlined" className={styles.action} />
       <TaobaoCircleOutlined key="TaobaoCircleOutlined" className={styles.action} />
-      <WeiboCircleOutlined key="WeiboCircleOutlined" className={styles.action} />
+      <WeiboCircleOutlined key="WeiboCircleOutlined" className={styles.action} /> */}
+      <GoogleCircleFilled
+        key="GoogleCircleFilled"
+        className={styles.action}
+        onClick={() => googleLogin()}
+      />
     </>
   );
 };
@@ -168,6 +175,26 @@ const Login: React.FC = () => {
   };
   //const { status, type: loginType } = userLoginState;
 
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      const result = await signInWithGoogle({ googleToken: tokenResponse.access_token });
+      if (result.success) {
+        const { accessToken, idToken, sessionId } = result.data;
+        setSessionToken(accessToken, idToken, sessionId);
+        message.success('Google Sign-In successful');
+        await fetchUserInfo();
+        const urlParams = new URL(window.location.href).searchParams;
+        history.push(urlParams.get('redirect') || '/');
+      } else {
+        message.error('Google Sign-In failed');
+      }
+    },
+    onError: () => {
+      console.error('Google Sign-In Error');
+      message.error('Google Sign-In failed. Please try again.');
+    },
+  });
+
   return (
     <div className={styles.container}>
       <Helmet>
@@ -194,26 +221,31 @@ const Login: React.FC = () => {
           logo={<img alt="logo" src="/logo.svg" />}
           title="Ant Design"
           subTitle={intl.formatMessage({ id: 'pages.layouts.userLayout.title' })}
-          initialValues={{
-            // autoLogin: true,
-          }}
+          initialValues={
+            {
+              // autoLogin: true,
+            }
+          }
           actions={[
             <FormattedMessage
               key="loginWith"
               id="pages.login.loginWith"
               defaultMessage="其他登录方式"
             />,
-            <ActionIcons key="icons" />,
+            <ActionIcons key="icons" googleLogin={googleLogin} />,
           ]}
           submitter={{
             searchConfig: {
-              submitText: type === 'signIn' ? intl.formatMessage({
-                id: 'loginForm.submitText',
-                defaultMessage: '登录',
-              }) : intl.formatMessage({
-                id: 'signUpForm.submitText',
-                defaultMessage: '注册',
-              }),
+              submitText:
+                type === 'signIn'
+                  ? intl.formatMessage({
+                      id: 'loginForm.submitText',
+                      defaultMessage: '登录',
+                    })
+                  : intl.formatMessage({
+                      id: 'signUpForm.submitText',
+                      defaultMessage: '注册',
+                    }),
             },
           }}
           onFinish={async (values) => {

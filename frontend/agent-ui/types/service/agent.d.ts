@@ -29,4 +29,7 @@ declare namespace API.Service {
     idToken: string;
   };
 
+  type GoogleSignInParams = {
+    googleToken: string;
+  };
 }
