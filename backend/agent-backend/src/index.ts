@@ -9,6 +9,7 @@ import { performanceMonitor } from "@linerra/system/src/middlewares/performanceM
 import { trace } from "@linerra/system/src/middlewares/trace";
 import { Request, Response } from 'express';
 import { ErrorShowType } from "@linerra/system/src/enum/errorShowType";
+import dictRoutes from "./routes/dictRoutes";
 
 dotenv.config();
 
@@ -53,7 +54,7 @@ app.use((req: Request, res: Response, next) => {
 app.use(performanceMonitor);
 
 app.use("/api/agents", agentRoutes);
-
+app.use("/api/dict", dictRoutes);
 // 错误日志记录
 app.use(expressWinston.errorLogger({
   winstonInstance: logger,

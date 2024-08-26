@@ -9,6 +9,7 @@ import { errorConfig } from './requestErrorConfig';
 //import { currentUser as queryCurrentUser } from '@/services/ant-design-pro/api';
 import React from 'react';
 import { getUserInfo } from './services/service/agent';
+import { getDicts } from './services/service/dict';
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
 
@@ -18,8 +19,10 @@ const loginPath = '/user/login';
 export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
   currentUser?: API.CurrentUser;
+  dicts?: Record<string, API.Service.DictData[]>;
   loading?: boolean;
   fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
+  fetchDicts?: () => Promise<Record<string, API.Service.DictData[]> | undefined>;
 }> {
   const fetchUserInfo = async () => {
     try {
@@ -36,12 +39,30 @@ export async function getInitialState(): Promise<{
     }
     return undefined;
   };
+
+  const fetchDicts = async () => {
+    try {
+      const response: API.R<Record<string, API.Service.DictData[]>> = await getDicts({
+        skipErrorHandler: true,
+      });
+      return response.data;
+    } catch (error) {
+      history.push(loginPath);
+    }
+    return undefined;
+  };
+
   // 如果不是登录页面，执行
   const { location } = history;
   if (location.pathname !== loginPath) {
-    const currentUser = await fetchUserInfo();
+    const [currentUser, dicts] = await Promise.all([
+      fetchUserInfo(),
+      fetchDicts()
+    ]);
     return {
       fetchUserInfo,
+      fetchDicts,
+      dicts,
       currentUser,
       settings: defaultSettings as Partial<LayoutSettings>,
     };

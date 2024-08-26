@@ -119,6 +119,18 @@ const Login: React.FC = () => {
     }
   };
 
+  const fetchDicts = async () => {
+    const dicts = await initialState?.fetchDicts?.();
+    if (dicts) {
+      flushSync(() => {
+        setInitialState((s) => ({
+          ...s,
+          dicts,
+        }));
+      });
+    }
+  };
+
   const handleSubmit = async (values: API.Service.SignInParams | API.Service.SignUpParams) => {
     //try {
     // 登录
@@ -136,7 +148,7 @@ const Login: React.FC = () => {
           signInResult.data?.sessionId,
         );
         message.success(defaultLoginSuccessMessage);
-        await fetchUserInfo();
+        await Promise.all([fetchUserInfo(), fetchDicts()]);
         const urlParams = new URL(window.location.href).searchParams;
         history.push(urlParams.get('redirect') || '/');
         return;

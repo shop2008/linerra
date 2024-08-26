@@ -66,14 +66,14 @@ export class CognitoService {
   //   }
   // }
   signIn(email: string, password: string): Promise<any> {
-    //console.log(email, password);
-    console.log(process.env.AGENT_USER_POOL_ID, process.env.AGENT_USER_POOL_CLIENT_ID);
+    console.log(email, password);
+    //console.log(process.env.AGENT_USER_POOL_ID, process.env.AGENT_USER_POOL_CLIENT_ID);
     return new Promise((resolve, reject) => {
       const authenticationDetails = new AuthenticationDetails({
         Username: email,
         Password: password,
       });
-      console.log(authenticationDetails);
+      //console.log(authenticationDetails);
       const cognitoUser = new CognitoUser({
         Username: email,
         Pool: this.userPool,
