@@ -19,7 +19,7 @@ enum ErrorShowType {
 interface ResponseStructure {
   success: boolean;
   data: any;
-  errorCode?: number;
+  errorCode?: string;
   errorMessage?: string;
   showType?: ErrorShowType;
 }

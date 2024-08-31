@@ -1,3 +1,5 @@
+import 'express-async-errors';
+
 import serverless from "serverless-http";
 import express from "express";
 import expressWinston from "express-winston";
@@ -10,6 +12,7 @@ import { trace } from "@linerra/system/src/middlewares/trace";
 import { Request, Response } from 'express';
 import { ErrorShowType } from "@linerra/system/src/enum/errorShowType";
 import dictRoutes from "./routes/dictRoutes";
+import verykApiRoutes from "./routes/verykApiRoutes";
 
 dotenv.config();
 
@@ -55,6 +58,13 @@ app.use(performanceMonitor);
 
 app.use("/api/agents", agentRoutes);
 app.use("/api/dict", dictRoutes);
+app.use("/api/veryk", verykApiRoutes);
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+
 // 错误日志记录
 app.use(expressWinston.errorLogger({
   winstonInstance: logger,
@@ -62,9 +72,6 @@ app.use(expressWinston.errorLogger({
 
 app.use(errorHandler);
 
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
-});
 
 // app.get("/", (req, res, next) => {
 //   console.log(process.env.AGENT_USER_POOL_REGION);

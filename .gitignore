@@ -8,3 +8,5 @@ yarn.lock
 .eslintcache
 *.local
 .system
+.DS_Store
+*.local.*
