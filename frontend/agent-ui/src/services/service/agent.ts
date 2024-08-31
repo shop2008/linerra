@@ -48,6 +48,33 @@ export async function getUserInfo(options?: Record<string, any>) {
 export async function refreshToken(options?: Record<string, any>) {
   return request<API.R<API.Service.RefreshTokenResult>>('/api/agents/refreshToken', {
     method: 'POST',
+    headers: {
+      refreshToken: true,
+    },
     ...(options || {}),
   });
 }
+
+export async function initiateGoogleSignIn(options?: Record<string, any>) {
+  return request<API.R<{ url: string }>>('/api/agents/auth/google', {
+    method: 'GET',
+    headers: {
+      isToken: false,
+      'Content-Type': 'application/json',
+    },
+    ...(options || {}),
+  });
+}
+
+export async function handleGoogleCallback(code: string, options?: Record<string, any>) {
+  return request<API.Service.SignInResult>('/api/agents/auth/google/callback', {
+    method: 'GET',
+    headers: {
+      isToken: false,
+      'Content-Type': 'application/json',
+    },
+    params: { code },
+    ...(options || {}),
+  });
+}
+

@@ -10,6 +10,12 @@ stages:
     observability: true
   default:
     observability: false
+    params:
+      agentUserPoolName: ${self:service}-user-pool-${sls:stage}
+      agentUserPoolClientName: ${self:service}-user-pool-client-${sls:stage}
+      agentUserPoolDomain: ${self:service}-user-pool-domain-${sls:stage}
+      userSessionsTable: ${self:service}-user-sessions-${sls:stage}
+      frontendUrl: ${env:FRONTEND_URL, 'http://localhost:8000'}
 
 provider:
   name: aws
@@ -17,15 +23,19 @@ provider:
   region: us-east-1
   timeout: 29
   versionFunctions: false
+  # httpApi:
+  #   id: Fn::GetAtt: [HttpApi, Arn]
   environment:
     AGENT_USER_POOL_ID: !Ref AgentUserPool
     AGENT_USER_POOL_CLIENT_ID: !Ref AgentUserPoolClient
     AGENT_USER_POOL_REGION: ${self:provider.region}
-    AGENT_USER_POOL_DOMAIN: ${self:service}-user-pool-domain-${sls:stage}
-    USER_SESSIONS_TABLE: ${self:service}-user-sessions-${sls:stage}
-    VERYK_APP_ID: ${env:VERYK_APP_ID, param:VERYK_APP_ID}
-    VERYK_APP_SECRET: ${env:VERYK_APP_SECRET, param:VERYK_APP_SECRET}
-    VERYK_API_URL: ${env:VERYK_API_URL, param:VERYK_API_URL}
+    AGENT_USER_POOL_DOMAIN: ${param:agentUserPoolDomain}
+    USER_SESSIONS_TABLE: ${param:userSessionsTable}
+    VERYK_APP_ID: ${env:VERYK_APP_ID, param:verykAppId}
+    VERYK_APP_SECRET: ${env:VERYK_APP_SECRET, param:verykAppSecret}
+    VERYK_API_URL: ${env:VERYK_API_URL, param:verykApiUrl}
+    FRONTEND_URL: ${param:frontendUrl}
+    #COGNITO_GOOGLE_CLIENT_ID: ${param:COGNITO_GOOGLE_CLIENT_ID, '860845154660-u81rc57q7sedp0oq6ak8cgdg2hlphsq5.apps.googleusercontent.com'}
   iam:
     role:
       statements:
@@ -63,10 +73,28 @@ functions:
 
 resources:
   Resources:
+
+    HttpApiMapping:
+      Type: AWS::ApiGatewayV2::ApiMapping
+      DependsOn: HttpApiCustomDomain
+      Properties:
+        ApiId: !Ref HttpApi
+        DomainName: ${param:apiGatewayDomain-${sls:stage}}
+        Stage: !Ref HttpApiStage
+
+    HttpApiCustomDomain:
+      Type: AWS::ApiGatewayV2::DomainName
+      Properties:
+        DomainName: ${param:apiGatewayDomain-${sls:stage}}
+        DomainNameConfigurations:
+          - CertificateArn: ${param:apiGatewayCertificateArn-${sls:stage}}
+            EndpointType: REGIONAL
+            SecurityPolicy: TLS_1_2
+
     AgentUserPool:
       Type: AWS::Cognito::UserPool
       Properties:
-        UserPoolName: ${self:service}-user-pool-${sls:stage}
+        UserPoolName: ${param:agentUserPoolName}
         AutoVerifiedAttributes:
           - email
         UsernameAttributes:
@@ -88,25 +116,55 @@ resources:
 
     AgentUserPoolClient:
       Type: AWS::Cognito::UserPoolClient
+      DependsOn: AgentUserPoolIdentityProviderGoogle
       Properties:
-        ClientName: ${self:service}-user-pool-client-${sls:stage}
+        ClientName: ${param:agentUserPoolClientName}
         UserPoolId: !Ref AgentUserPool
         ExplicitAuthFlows:
           - ALLOW_USER_SRP_AUTH
           - ALLOW_REFRESH_TOKEN_AUTH
         GenerateSecret: false
         PreventUserExistenceErrors: ENABLED
+        AllowedOAuthFlowsUserPoolClient: true
+        AllowedOAuthFlows:
+          - code
+        AllowedOAuthScopes:
+          #- email
+          - openid
+          #- profile
+          - aws.cognito.signin.user.admin
+        CallbackURLs:
+          - ${param:frontendUrl}/user/login
+        SupportedIdentityProviders:
+          - Google
+
 
     AgentUserPoolDomain:
       Type: AWS::Cognito::UserPoolDomain
       Properties:
-        Domain: ${self:service}-user-pool-domain-${sls:stage}
+        Domain: ${param:agentUserPoolDomain}
         UserPoolId: !Ref AgentUserPool
+
+    AgentUserPoolIdentityProviderGoogle:
+      Type: AWS::Cognito::UserPoolIdentityProvider
+      Properties:
+        UserPoolId: !Ref AgentUserPool
+        ProviderName: Google
+        ProviderType: Google
+        ProviderDetails:
+          client_id: ${param:googleClientId-${sls:stage}}
+          client_secret: ${param:googleClientSecret-${sls:stage}}
+          authorize_scopes: "openid profile email"
+        AttributeMapping:
+          email: email
+          email_verified: email_verified
+
+
 
     UserSessionsTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:service}-user-sessions-${sls:stage}
+        TableName: ${param:userSessionsTable}
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
           - AttributeName: userId

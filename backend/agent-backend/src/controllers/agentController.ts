@@ -51,6 +51,7 @@ export class AgentController {
 
   async refreshToken(req: Request, res: Response) {
     try {
+      //console.log(req.context);
       const { accessToken, idToken, sessionId, user: { sub: userId } } = req.context;
       const accessPayload = await accessVerifier.verify(accessToken);
       const idPayload = await idTokenVerifier.verify(idToken);
@@ -74,6 +75,30 @@ export class AgentController {
     } catch (error) {
       logger.error("Error refreshing token", error);
       res.fail('Error refreshing token', 'ErrorRefreshingToken', ErrorShowType.ERROR_MESSAGE, 401);
+    }
+  }
+
+  async initiateGoogleSignIn(req: Request, res: Response) {
+    try {
+      const url = await cognitoService.initiateGoogleSignIn();
+      res.ok({ url });
+    } catch (error) {
+      logger.error("Error initiating Google sign-in", error);
+      res.fail('Error initiating Google sign-in', 'ErrorInitiatingGoogleSignIn', ErrorShowType.ERROR_MESSAGE, 400);
+    }
+  }
+
+  async handleGoogleCallback(req: Request, res: Response) {
+    try {
+      const { code } = req.query;
+      if (typeof code !== 'string') {
+        throw new Error('Invalid code');
+      }
+      const result = await cognitoService.handleGoogleCallback(code);
+      res.ok(result);
+    } catch (error) {
+      //logger.error("Error handling Google callback", error);
+      res.fail('Error handling Google callback', 'ErrorHandlingGoogleCallback', ErrorShowType.ERROR_MESSAGE, 400);
     }
   }
 }

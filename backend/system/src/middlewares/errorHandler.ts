@@ -4,7 +4,7 @@ import { ErrorShowType } from '../enum/errorShowType';
 import logger from '../utils/logger';
 
 export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
-  logger.error(err.stack);
+  //logger.error(err.stack);
 
   if (err instanceof ServiceError) {
     res.status(500).json({

@@ -21,13 +21,13 @@ const app = express();
 app.use(express.json());
 
 // 请求日志记录
-app.use(expressWinston.logger({
-  winstonInstance: logger,
-  meta: true,
-  msg: "HTTP {{req.method}} {{req.url}}",
-  expressFormat: true,
-  colorize: false,
-}));
+// app.use(expressWinston.logger({
+//   winstonInstance: logger,
+//   meta: true,
+//   msg: "HTTP {{req.method}} {{req.url}}",
+//   expressFormat: true,
+//   colorize: false,
+// }));
 
 app.use(trace);
 app.use((req: Request, res: Response, next) => {
@@ -66,9 +66,9 @@ app.get('/health', (req, res) => {
 
 
 // 错误日志记录
-app.use(expressWinston.errorLogger({
-  winstonInstance: logger,
-}));
+// app.use(expressWinston.errorLogger({
+//   winstonInstance: logger,
+// }));
 
 app.use(errorHandler);
 

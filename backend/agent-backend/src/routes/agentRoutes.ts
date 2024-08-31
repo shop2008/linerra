@@ -9,6 +9,9 @@ const agentController = new AgentController();
 
 router.post('/signUp', validate(signUpSchema), agentController.signUp);
 router.post('/signIn', validate(signInSchema), agentController.signIn);
+router.post('/refreshToken', auth, agentController.refreshToken);
 router.get('/getUserInfo', auth, agentController.getUserInfo);
+router.get('/auth/google', agentController.initiateGoogleSignIn);
+router.get('/auth/google/callback', agentController.handleGoogleCallback);
 
 export default router;

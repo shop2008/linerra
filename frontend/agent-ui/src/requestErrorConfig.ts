@@ -148,7 +148,8 @@ export const errorConfig: RequestConfig = {
           'Session-Id': sessionId || '',
         };
 
-        if (isNeedRefreshToken()) {
+        if (isNeedRefreshToken() && !headers?.refreshToken) {
+          //console.log("isNeedRefreshToken");
           const refreshResult: API.R<API.Service.RefreshTokenResult> = await refreshToken();
           if (refreshResult.success && refreshResult.data) {
             const { accessToken, idToken } = refreshResult.data;

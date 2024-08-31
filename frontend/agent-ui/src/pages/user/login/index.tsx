@@ -1,5 +1,5 @@
 import { Footer } from '@/components';
-import { signIn, signUp } from '@/services/service/agent';
+import { handleGoogleCallback, initiateGoogleSignIn, signIn, signUp } from '@/services/service/agent';
 import { getFakeCaptcha } from '@/services/ant-design-pro/login';
 import {
   AlipayCircleOutlined,
@@ -13,6 +13,7 @@ import {
 } from '@ant-design/icons';
 import {
   LoginForm,
+  PageLoading,
   ProFormCaptcha,
   ProFormCheckbox,
   ProFormText,
@@ -20,7 +21,7 @@ import {
 import { FormattedMessage, history, SelectLang, useIntl, useModel, Helmet } from '@umijs/max';
 import { Alert, message, Tabs } from 'antd';
 import Settings from '../../../../config/defaultSettings';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { createStyles } from 'antd-style';
 import { clearSessionToken, setSessionToken } from '@/access';
@@ -61,7 +62,7 @@ const useStyles = createStyles(({ token }) => {
   };
 });
 
-console.log(process.env.API_URL);
+//console.log(process.env.API_URL);
 
 const ActionIcons = () => {
   const { styles } = useStyles();
@@ -71,6 +72,15 @@ const ActionIcons = () => {
       <AlipayCircleOutlined key="AlipayCircleOutlined" className={styles.action} />
       <TaobaoCircleOutlined key="TaobaoCircleOutlined" className={styles.action} />
       <WeiboCircleOutlined key="WeiboCircleOutlined" className={styles.action} />
+      <GoogleOutlined key="GoogleOutlined" className={styles.action}
+        onClick={async () => {
+          const result = await initiateGoogleSignIn();
+          if (result.success && result.data?.url) {
+            window.location.href = result.data.url;
+          } else {
+            message.error('Failed to initiate Google sign-in');
+          }
+        }} />
     </>
   );
 };
@@ -108,6 +118,7 @@ const Login: React.FC = () => {
   const intl = useIntl();
 
   const fetchUserInfo = async () => {
+    //console.log(fetchUserInfo);
     const userInfo = await initialState?.fetchUserInfo?.();
     if (userInfo) {
       flushSync(() => {
@@ -130,6 +141,39 @@ const Login: React.FC = () => {
       });
     }
   };
+
+  const [isLoading, setIsLoading] = useState(false);
+
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const code = searchParams.get('code');
+
+    if (code) {
+      setIsLoading(true);
+      handleGoogleCallback(code).then(async (result) => {
+        if (result.success) {
+          const defaultLoginSuccessMessage = intl.formatMessage({
+            id: 'pages.login.success',
+            defaultMessage: '登录成功！',
+          });
+          const { idToken, accessToken, sessionId } = result.data;
+          setSessionToken(accessToken, idToken, sessionId);
+          message.success(defaultLoginSuccessMessage);
+          await Promise.all([fetchUserInfo(), fetchDicts()]);
+
+          //const urlParams = new URL(window.location.href).searchParams;
+          setIsLoading(false);
+          history.push(searchParams.get('redirect') || '/');
+
+
+        } else {
+          setIsLoading(false);
+          message.error('Google sign-in failed');
+        }
+      });
+    }
+  }, [location]);
 
   const handleSubmit = async (values: API.Service.SignInParams | API.Service.SignUpParams) => {
     //try {
@@ -192,6 +236,7 @@ const Login: React.FC = () => {
         </title>
       </Helmet>
       <Lang />
+      {isLoading && <PageLoading fullscreen={true} />}
       <div
         style={{
           flex: '1',

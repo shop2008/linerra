@@ -2,6 +2,7 @@ import { CognitoIdentityProviderClient, SignUpCommand, InitiateAuthCommand, Sign
 import { AuthenticationDetails, CognitoUser, CognitoUserPool } from 'amazon-cognito-identity-js';
 import logger from "../utils/logger";
 import { SessionService } from "./sessionService";
+import axios from 'axios';
 
 const client = new CognitoIdentityProviderClient({ region: process.env.AGENT_USER_POOL_REGION || process.env.AWS_REGION });
 
@@ -66,7 +67,7 @@ export class CognitoService {
   //   }
   // }
   signIn(email: string, password: string): Promise<any> {
-    console.log(email, password);
+    //console.log(email, password);
     //console.log(process.env.AGENT_USER_POOL_ID, process.env.AGENT_USER_POOL_CLIENT_ID);
     return new Promise((resolve, reject) => {
       const authenticationDetails = new AuthenticationDetails({
@@ -144,5 +145,88 @@ export class CognitoService {
       logger.error('Error getting user', { accessToken, error });
       throw error;
     }
+  }
+
+  async initiateGoogleSignIn(): Promise<string> {
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8000";
+    const scopes = [
+      // 'email',
+      'openid',
+      // 'profile',
+      'aws.cognito.signin.user.admin'
+    ];
+    const scope = scopes.join(' ');
+
+    const authUrl = `${this.domain}/oauth2/authorize?response_type=code&client_id=${this.clientId}&redirect_uri=${frontendUrl}/user/login&identity_provider=Google&scope=${encodeURIComponent(scope)}`;
+    return authUrl;
+
+
+    // const params = {
+    //   ClientId: this.clientId,
+    //   RedirectUri: frontendUrl + '/user/google-callback',
+    //   ResponseType: 'code',
+    //   Scope: ['email', 'openid', 'profile'].join(' '),
+    //   IdentityProvider: 'Google',
+    // };
+
+    // const command = new InitiateAuthCommand({
+    //   AuthFlow: 'USER_SRP_AUTH',
+    //   ClientId: this.clientId,
+    //   AuthParameters: params,
+    // });
+
+    // try {
+    //   const response = await client.send(command);
+    //   return response.AuthenticationResult?.IdToken || '';
+    // } catch (error) {
+    //   logger.error('Error initiating Google sign-in', error);
+    //   throw error;
+    // }
+  }
+
+  async handleGoogleCallback(code: string): Promise<any> {
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8000";
+    const tokenUrl = `${this.domain}/oauth2/token`;
+    const params = new URLSearchParams();
+    params.append('grant_type', 'authorization_code');
+    params.append('client_id', this.clientId);
+    params.append('redirect_uri', `${frontendUrl}/user/login`);
+    params.append('code', code);
+    //console.log(params);
+    //params.append('client_secret', CLIENT_SECRET);
+
+    try {
+      const response = await axios.post(tokenUrl, params, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+      const { id_token, access_token, refresh_token } = response.data;
+      const decodedToken = atob(id_token.split('.')[1]);
+      const userId = JSON.parse(decodedToken).sub;
+      return { idToken: id_token, accessToken: access_token, refreshToken: refresh_token, userId: userId };
+    } catch (error: any) {
+      //console.log(error.response?.data);
+      logger.error('Error handling Google callback', error);
+      throw error;
+    }
+
+    //const params = ;
+
+    // const command = new InitiateAuthCommand({
+    //   ClientId: this.clientId,
+    //   AuthFlow: 'USER_SRP_AUTH',
+    //   AuthParameters: {
+    //     CODE: code,
+    //   },
+    // });
+
+    // try {
+    //   const response = await client.send(command);
+    //   return response.AuthenticationResult;
+    // } catch (error) {
+    //   logger.error('Error handling Google callback', error);
+    //   throw error;
+    // }
   }
 }

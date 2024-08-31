@@ -22,8 +22,8 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
       // 可以根据需要添加更多字段
     };
     req.context.accessToken = token;
-    req.context.idToken = req.headers['Identity-Token'];
-    req.context.sessionId = req.headers['Session-Id'];
+    req.context.idToken = req.headers['identity-token'];
+    req.context.sessionId = req.headers['session-id'];
 
     next();
   } catch (err) {
