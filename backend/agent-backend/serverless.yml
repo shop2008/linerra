@@ -71,23 +71,34 @@ functions:
     events:
       - httpApi: "*"
 
+
+
 resources:
+  Conditions:
+    ShouldCreateCustomDomain:
+      Fn::Not:
+        - Fn::Equals:
+            - ${param:apiGatewayDomain-${sls:stage}, ''}
+            - ''
+
   Resources:
 
     HttpApiMapping:
       Type: AWS::ApiGatewayV2::ApiMapping
+      Condition: ShouldCreateCustomDomain
       DependsOn: HttpApiCustomDomain
       Properties:
         ApiId: !Ref HttpApi
-        DomainName: ${param:apiGatewayDomain-${sls:stage}}
+        DomainName: ${param:apiGatewayDomain-${sls:stage}, ''}
         Stage: !Ref HttpApiStage
 
     HttpApiCustomDomain:
       Type: AWS::ApiGatewayV2::DomainName
+      Condition: ShouldCreateCustomDomain
       Properties:
-        DomainName: ${param:apiGatewayDomain-${sls:stage}}
+        DomainName: ${param:apiGatewayDomain-${sls:stage}, ''}
         DomainNameConfigurations:
-          - CertificateArn: ${param:apiGatewayCertificateArn-${sls:stage}}
+          - CertificateArn: ${param:apiGatewayCertificateArn-${sls:stage}, ''}
             EndpointType: REGIONAL
             SecurityPolicy: TLS_1_2
 
