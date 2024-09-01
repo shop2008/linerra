@@ -60,4 +60,10 @@ export default [
     layout: false,
     component: './404',
   },
+  {
+    path: '/create-order',
+    name: 'createOrder',
+    icon: 'PlusOutlined',
+    component: './CreateOrder',
+  },
 ];
