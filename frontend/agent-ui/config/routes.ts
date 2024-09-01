@@ -23,10 +23,63 @@ export default [
     ],
   },
   {
-    path: '/welcome',
-    name: 'welcome',
-    icon: 'smile',
-    component: './Welcome',
+    path: '/dashboard',
+    name: 'dashboard',
+    icon: 'dashboard',
+    routes: [
+      {
+        path: '/dashboard',
+        redirect: '/dashboard/home',
+      },
+      {
+        path: '/dashboard/home',
+        name: 'home',
+        component: './Dashboard/Home',
+      },
+      {
+        path: '/dashboard/staff-accounts',
+        name: 'staffAccounts',
+        component: './Dashboard/StaffAccounts',
+      },
+      {
+        path: '/dashboard/my-services',
+        name: 'myServices',
+        component: './Dashboard/MyServices',
+      },
+    ],
+  },
+  {
+    path: '/shipping',
+    name: 'shipping',
+    icon: 'car',
+    routes: [
+      {
+        path: '/shipping/quote',
+        name: 'quote',
+        component: './Shipping/Quote',
+      },
+      {
+        path: '/shipping/shipments',
+        name: 'shipments',
+        routes: [
+          {
+            path: '/shipping/shipments/list',
+            name: 'list',
+            component: './Shipping/ShipmentList',
+          },
+          {
+            path: '/shipping/shipments/create',
+            name: 'create',
+            component: './Shipping/CreateOrder',
+          },
+          {
+            path: '/shipping/shipments/print-label',
+            name: 'printLabel',
+            component: './Shipping/PrintLabel',
+          },
+        ],
+      },
+    ],
   },
   {
     path: '/admin',
@@ -46,14 +99,8 @@ export default [
     ],
   },
   {
-    name: 'list.table-list',
-    icon: 'table',
-    path: '/list',
-    component: './TableList',
-  },
-  {
     path: '/',
-    redirect: '/welcome',
+    redirect: '/dashboard/home',
   },
   {
     path: '*',
@@ -61,9 +108,79 @@ export default [
     component: './404',
   },
   {
-    path: '/create-order',
-    name: 'createOrder',
-    icon: 'PlusOutlined',
-    component: './CreateOrder',
+    path: '/my-account',
+    name: 'myAccount',
+    icon: 'user',
+    routes: [
+      {
+        path: '/my-account/summary',
+        name: 'accountSummary',
+        component: './MyAccount/AccountSummary',
+      },
+      {
+        path: '/my-account/transactions',
+        name: 'transactionDetails',
+        component: './MyAccount/TransactionDetails',
+      },
+      {
+        path: '/my-account/payable',
+        name: 'accountPayable',
+        component: './MyAccount/AccountPayable',
+      },
+      {
+        path: '/my-account/invoices',
+        name: 'invoicesStatement',
+        component: './MyAccount/InvoicesStatement',
+      },
+    ],
+  },
+  {
+    path: '/address-book',
+    name: 'addressBook',
+    icon: 'book',
+    routes: [
+      {
+        path: '/address-book/list',
+        name: 'addressList',
+        component: './AddressBook/AddressList',
+      },
+      {
+        path: '/address-book/import',
+        name: 'importAddresses',
+        component: './AddressBook/ImportAddresses',
+      },
+    ],
+  },
+  {
+    path: '/user-centre',
+    name: 'userCentre',
+    icon: 'user',
+    routes: [
+      {
+        path: '/user-centre/my-account',
+        name: 'myAccount',
+        component: './UserCentre/MyAccount',
+      },
+      {
+        path: '/user-centre/change-email',
+        name: 'changeEmail',
+        component: './UserCentre/ChangeEmail',
+      },
+      {
+        path: '/user-centre/change-password',
+        name: 'changePassword',
+        component: './UserCentre/ChangePassword',
+      },
+      {
+        path: '/user-centre/upload-photo',
+        name: 'uploadPhoto',
+        component: './UserCentre/UploadPhoto',
+      },
+      {
+        path: '/user-centre/sign-out',
+        name: 'signOut',
+        component: './UserCentre/SignOut',
+      },
+    ],
   },
 ];

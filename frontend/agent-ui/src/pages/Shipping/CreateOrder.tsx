@@ -11,25 +11,27 @@ import {
   Select,
   Space,
   Typography,
+  Modal,
+  List,
 } from 'antd';
-import React, { useState } from 'react';
-import styled from 'styled-components';
+import React, { useState, useEffect } from 'react';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-const SectionTitle = styled(Title)`
-  background-color: #f0f2f5;
-  padding: 12px 16px;
-  margin-bottom: 16px !important;
-  border-left: 4px solid #1890ff;
-`;
+interface ShippingServiceFormProps {
+  selectedService: string;
+  onReselect: () => void;
+  formData: any;
+  onFormDataChange: (formData: any) => void;
+}
 
-const FormSection = styled(Card)`
-  margin-bottom: 24px;
-`;
-
-const ShippingServiceForm: React.FC = () => {
+const ShippingServiceForm: React.FC<ShippingServiceFormProps> = ({
+  selectedService,
+  onReselect,
+  formData,
+  onFormDataChange,
+}) => {
   const [form] = Form.useForm();
   const [showConfirmationTypeOptions, setShowConfirmationTypeOptions] = useState(false);
   const [packageType, setPackageType] = useState<string | undefined>(undefined);
@@ -56,18 +58,38 @@ const ShippingServiceForm: React.FC = () => {
     setQuantity(value);
   };
 
+  const handleValuesChange = (changedValues: any, allValues: any) => {
+    onFormDataChange(allValues);
+  };
+
+  useEffect(() => {
+    form.setFieldsValue(formData);
+  }, [formData, form]);
+
   return (
     <>
       <Form
         form={form}
         layout="horizontal"
         onFinish={onFinish}
+        onValuesChange={handleValuesChange}
+        initialValues={formData}
         labelCol={{ span: 8 }}
         wrapperCol={{ span: 16 }}
         labelAlign="right"
       >
-        <FormSection>
-          <SectionTitle level={3}>Carrier & Service</SectionTitle>
+        <Card style={{ marginBottom: 24 }}>
+          <Title
+            level={3}
+            style={{
+              backgroundColor: '#f0f2f5',
+              padding: '12px 16px',
+              marginBottom: 16,
+              borderLeft: '4px solid #1890ff',
+            }}
+          >
+            Carrier & Service
+          </Title>
           <Row justify="space-between" align="top" style={{ marginBottom: '20px' }}>
             <Col>
               <Space align="start">
@@ -76,18 +98,28 @@ const ShippingServiceForm: React.FC = () => {
                   <Title level={4} style={{ margin: 0 }}>
                     Purolator
                   </Title>
-                  <Text type="secondary">PurolatorGround (PurolatorGround)</Text>
+                  <Text type="secondary">{selectedService.split(' - ')[0]}</Text>
                 </Space>
               </Space>
             </Col>
             <Col>
-              <Button>Re-Select</Button>
+              <Button onClick={onReselect}>Re-Select</Button>
             </Col>
           </Row>
-        </FormSection>
+        </Card>
 
-        <FormSection>
-          <SectionTitle level={3}>Shipping Details</SectionTitle>
+        <Card style={{ marginBottom: 24 }}>
+          <Title
+            level={3}
+            style={{
+              backgroundColor: '#f0f2f5',
+              padding: '12px 16px',
+              marginBottom: 16,
+              borderLeft: '4px solid #1890ff',
+            }}
+          >
+            Shipping Details
+          </Title>
           <Row gutter={24}>
             <Col span={12}>
               <Title level={4}>SHIP FROM (English)</Title>
@@ -222,10 +254,20 @@ const ShippingServiceForm: React.FC = () => {
               </Form.Item>
             </Col>
           </Row>
-        </FormSection>
+        </Card>
 
-        <FormSection>
-          <SectionTitle level={3}>Package Information</SectionTitle>
+        <Card style={{ marginBottom: 24 }}>
+          <Title
+            level={3}
+            style={{
+              backgroundColor: '#f0f2f5',
+              padding: '12px 16px',
+              marginBottom: 16,
+              borderLeft: '4px solid #1890ff',
+            }}
+          >
+            Package Information
+          </Title>
           <Row>
             <Col span={24}>
               <Title level={4}>Packages</Title>
@@ -363,10 +405,20 @@ const ShippingServiceForm: React.FC = () => {
               )}
             </Col>
           </Row>
-        </FormSection>
+        </Card>
 
-        <FormSection>
-          <SectionTitle level={3}>Additional Options</SectionTitle>
+        <Card style={{ marginBottom: 24 }}>
+          <Title
+            level={3}
+            style={{
+              backgroundColor: '#f0f2f5',
+              padding: '12px 16px',
+              marginBottom: 16,
+              borderLeft: '4px solid #1890ff',
+            }}
+          >
+            Additional Options
+          </Title>
           <Row gutter={24}>
             <Col span={12}>
               <Title level={4}>Options</Title>
@@ -436,10 +488,20 @@ const ShippingServiceForm: React.FC = () => {
               </Form.Item>
             </Col>
           </Row>
-        </FormSection>
+        </Card>
 
-        <FormSection>
-          <SectionTitle level={3}>Notice</SectionTitle>
+        <Card style={{ marginBottom: 24 }}>
+          <Title
+            level={3}
+            style={{
+              backgroundColor: '#f0f2f5',
+              padding: '12px 16px',
+              marginBottom: 16,
+              borderLeft: '4px solid #1890ff',
+            }}
+          >
+            Notice
+          </Title>
           <Row>
             <Col span={24}>
               <ul style={{ listStyleType: 'disc', paddingLeft: '20px' }}>
@@ -463,7 +525,7 @@ const ShippingServiceForm: React.FC = () => {
               </ul>
             </Col>
           </Row>
-        </FormSection>
+        </Card>
       </Form>
       <Affix offsetBottom={0} style={{ width: '100%' }}>
         <div
@@ -482,7 +544,7 @@ const ShippingServiceForm: React.FC = () => {
               <Title level={5} style={{ margin: 0 }}>
                 Purolator
               </Title>
-              <Text type="secondary">PurolatorGround (PurolatorGround)</Text>
+              <Text type="secondary">{selectedService.split(' - ')[0]}</Text>
             </Space>
           </Space>
           <Space>
@@ -499,4 +561,65 @@ const ShippingServiceForm: React.FC = () => {
   );
 };
 
-export default ShippingServiceForm;
+const CreateOrder: React.FC = () => {
+  const [isModalVisible, setIsModalVisible] = useState(true);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [formData, setFormData] = useState({});
+
+  const services = [
+    { name: 'Ground', description: 'Standard ground shipping' },
+    { name: 'PurolatorExpress', description: 'Fast express shipping' },
+    { name: 'PurolatorExpressEnvelope', description: 'Express shipping for envelopes' },
+    { name: 'PurolatorGround', description: 'Economical ground shipping' },
+  ];
+
+  const handleServiceSelection = (service: { name: string; description: string }) => {
+    setSelectedService(`${service.name} - ${service.description}`);
+    setIsModalVisible(false);
+  };
+
+  const handleReselect = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleFormDataChange = (newFormData: any) => {
+    setFormData(newFormData);
+  };
+
+  return (
+    <div>
+      <Modal
+        title="Select Shipping Service"
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null}
+      >
+        <Space align="start" style={{ marginBottom: '20px' }}>
+          <TruckOutlined style={{ fontSize: '48px', color: '#1890ff' }} />
+          <Title level={3} style={{ margin: 0 }}>
+            Purolator
+          </Title>
+        </Space>
+        <List
+          itemLayout="horizontal"
+          dataSource={services}
+          renderItem={(item) => (
+            <List.Item onClick={() => handleServiceSelection(item)} style={{ cursor: 'pointer' }}>
+              <List.Item.Meta title={item.name} style={{ padding: '0px' }} />
+            </List.Item>
+          )}
+        />
+      </Modal>
+      {selectedService && (
+        <ShippingServiceForm
+          selectedService={selectedService}
+          onReselect={handleReselect}
+          formData={formData}
+          onFormDataChange={handleFormDataChange}
+        />
+      )}
+    </div>
+  );
+};
+
+export default CreateOrder;
