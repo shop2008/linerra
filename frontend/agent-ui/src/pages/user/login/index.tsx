@@ -24,7 +24,7 @@ import Settings from '../../../../config/defaultSettings';
 import React, { useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { createStyles } from 'antd-style';
-import { clearSessionToken, setSessionToken } from '@/access';
+import { clearSessionToken, getAccessToken, setSessionToken } from '@/access';
 
 const useStyles = createStyles(({ token }) => {
   return {
@@ -112,6 +112,7 @@ const Lang = () => {
 
 const Login: React.FC = () => {
   //const [userLoginState, setUserLoginState] = useState<API.LoginResult>({});
+  //console.log("Login", null);
   const [type, setType] = useState<string>('signIn');
   const { initialState, setInitialState } = useModel('@@initialState');
   const { styles } = useStyles();
@@ -145,35 +146,47 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
 
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const code = searchParams.get('code');
-
-    if (code) {
-      setIsLoading(true);
-      handleGoogleCallback(code).then(async (result) => {
-        if (result.success) {
-          const defaultLoginSuccessMessage = intl.formatMessage({
-            id: 'pages.login.success',
-            defaultMessage: '登录成功！',
-          });
-          const { idToken, accessToken, sessionId } = result.data;
-          setSessionToken(accessToken, idToken, sessionId);
-          message.success(defaultLoginSuccessMessage);
-          await Promise.all([fetchUserInfo(), fetchDicts()]);
-
-          //const urlParams = new URL(window.location.href).searchParams;
-          setIsLoading(false);
-          history.push(searchParams.get('redirect') || '/');
+  // useEffect(() => {
 
 
-        } else {
-          setIsLoading(false);
-          message.error('Google sign-in failed');
-        }
-      });
-    }
-  }, [location]);
+  //   const searchParams = new URLSearchParams(location.search);
+
+  //   // if (getAccessToken()) {
+  //   //   setIsLoading(true);
+  //   //   Promise.all([fetchUserInfo(), fetchDicts()]).then(() => {
+  //   //     setIsLoading(false);
+  //   //     history.push('/');
+  //   //   });
+  //   //   return;
+  //   // }
+
+  //   const code = searchParams.get('code');
+
+  //   if (code) {
+  //     setIsLoading(true);
+  //     handleGoogleCallback(code).then(async (result) => {
+  //       if (result.success) {
+  //         const defaultLoginSuccessMessage = intl.formatMessage({
+  //           id: 'pages.login.success',
+  //           defaultMessage: '登录成功！',
+  //         });
+  //         const { idToken, accessToken, sessionId } = result.data;
+  //         setSessionToken(accessToken, idToken, sessionId);
+  //         message.success(defaultLoginSuccessMessage);
+  //         await Promise.all([fetchUserInfo(), fetchDicts()]);
+
+  //         //const urlParams = new URL(window.location.href).searchParams;
+  //         setIsLoading(false);
+  //         history.push(searchParams.get('redirect') || '/');
+
+
+  //       } else {
+  //         setIsLoading(false);
+  //         message.error('Google sign-in failed');
+  //       }
+  //     });
+  //   }
+  // }, [location]);
 
   const handleSubmit = async (values: API.Service.SignInParams | API.Service.SignUpParams) => {
     //try {

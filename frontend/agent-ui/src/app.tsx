@@ -1,17 +1,23 @@
 import { Footer, Question, SelectLang, AvatarDropdown, AvatarName } from '@/components';
 import { LinkOutlined } from '@ant-design/icons';
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
-import { SettingDrawer } from '@ant-design/pro-components';
+import { PageLoading, SettingDrawer } from '@ant-design/pro-components';
 import type { RunTimeLayoutConfig } from '@umijs/max';
-import { history, Link } from '@umijs/max';
+import { history, Link, useIntl } from '@umijs/max';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 //import { currentUser as queryCurrentUser } from '@/services/ant-design-pro/api';
 import React from 'react';
-import { getUserInfo } from './services/service/agent';
+import { getUserInfo, handleGoogleCallback } from './services/service/agent';
 import { getDicts } from './services/service/dict';
+import { getAccessToken, setSessionToken } from './access';
+import { message } from 'antd';
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
+
+// export const initialStateConfig = {
+//   loading: <PageLoading fullscreen={true} />,
+// };
 
 /**
  * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state
@@ -52,6 +58,14 @@ export async function getInitialState(): Promise<{
     return undefined;
   };
 
+  //debugger
+  const initialState = {
+    fetchUserInfo,
+    fetchDicts,
+    loading: true,
+    settings: defaultSettings as Partial<LayoutSettings>,
+  };
+
   // 如果不是登录页面，执行
   const { location } = history;
   if (location.pathname !== loginPath) {
@@ -59,23 +73,48 @@ export async function getInitialState(): Promise<{
       fetchUserInfo(),
       fetchDicts()
     ]);
+    //const currentUser = await fetchUserInfo();
+    //const dicts = await fetchDicts();
     return {
-      fetchUserInfo,
-      fetchDicts,
-      dicts,
+      ...initialState,
       currentUser,
-      settings: defaultSettings as Partial<LayoutSettings>,
+      dicts,
+      loading: false,
     };
+  } else {
+
+    const searchParams = new URLSearchParams(location.search);
+    const code = searchParams.get('code');
+    if (code) {
+      const result = await handleGoogleCallback(code);
+      if (result.success) {
+        const { idToken, accessToken, sessionId } = result.data;
+        setSessionToken(accessToken, idToken, sessionId);
+      }
+    }
+
+    const accessToken = getAccessToken();
+    if (accessToken) {
+      const [currentUser, dicts] = await Promise.all([
+        fetchUserInfo(),
+        fetchDicts()
+      ]);
+      history.push(searchParams.get('redirect') || '/');
+      return {
+        ...initialState,
+        currentUser,
+        dicts,
+        loading: false,
+      };
+    }
+
+
   }
-  return {
-    fetchUserInfo,
-    fetchDicts,
-    settings: defaultSettings as Partial<LayoutSettings>,
-  };
+  return initialState;
 }
 
 // ProLayout 支持的api https://procomponents.ant.design/components/layout
-export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) => {
+export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState, loading }) => {
   return {
     actionsRender: () => [<Question key="doc" />, <SelectLang key="SelectLang" />],
     avatarProps: {
@@ -95,6 +134,10 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       if (!initialState?.currentUser && location.pathname !== loginPath) {
         history.push(loginPath);
       }
+      //console.log("Onpagechange", location.pathname);
+      // if (!getAccessToken() && location.pathname !== loginPath) {
+      //   history.push(loginPath);
+      // }
     },
     bgLayoutImgList: [
       {
@@ -125,10 +168,12 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       ]
       : [],
     menuHeaderRender: undefined,
+    //loading: initialState ? false : true,
     // 自定义 403 页面
     // unAccessible: <div>unAccessible</div>,
     // 增加一个 loading 的状态
     childrenRender: (children) => {
+      // console.log("Loading", initialState?.loading);
       // if (initialState?.loading) return <PageLoading />;
       return (
         <>
