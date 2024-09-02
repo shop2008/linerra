@@ -8,3 +8,5 @@ const ChangePassword: React.FC = () => {
     </div>
   );
 };
+
+export default ChangePassword;

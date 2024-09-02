@@ -8,3 +8,5 @@ const UploadPhoto: React.FC = () => {
     </div>
   );
 };
+
+export default UploadPhoto;
