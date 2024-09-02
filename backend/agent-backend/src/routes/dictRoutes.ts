@@ -5,6 +5,6 @@ import { auth } from '../middlewares/auth';
 const router = express.Router();
 const dictController = new DictController();
 
-router.get('/getDicts', dictController.getDicts);
+router.get('/getDicts', auth, dictController.getDicts);
 
 export default router;

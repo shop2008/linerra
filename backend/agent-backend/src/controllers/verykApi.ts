@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import { getAccount, getCarrier, getProvince, getRegion, getService, quote } from '@linerra/system/src/utils/verykUtils';
-import { ProvinceReqVO, QuoteApiReq, QuoteReqVO } from '@linerra/system/src/models/veryk.entity';
-import { provinceReqVOToApiReq, quoteReqVOToApiReq } from 'system/src/models/veryk.convert';
+import { QuoteReqVO } from '@linerra/system/src/models/veryk/quote.entity';
+import { ProvinceReqVO } from '@linerra/system/src/models/veryk.entity';
+import { provinceReqVOToApiReq } from 'system/src/models/veryk.convert';
+import { quoteReqVOToApiReq } from 'system/src/models/veryk/quote.convert';
 
 export class VerykApi {
 

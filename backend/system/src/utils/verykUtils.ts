@@ -1,7 +1,8 @@
 import crypto from 'crypto';
 import axios from 'axios';
 import { ServiceError } from './serviceError';
-import { ProvinceApiReq, QuoteApiReq } from '../models/veryk.entity';
+import { QuoteApiReq } from '../models/veryk/quote.entity';
+import { ProvinceApiReq } from '../models/veryk.entity';
 
 const verykApiUrl = process.env.VERYK_API_URL;
 const verykAppId = process.env.VERYK_APP_ID;

@@ -13,6 +13,9 @@ import { Request, Response } from 'express';
 import { ErrorShowType } from "@linerra/system/src/enum/errorShowType";
 import dictRoutes from "./routes/dictRoutes";
 import verykApiRoutes from "./routes/verykApiRoutes";
+import verykGeneralRoutes from './routes/verykGeneralRoutes';
+import { contextInjector } from 'system/src/middlewares/contextInjector';
+import verykShipmentRoutes from './routes/verykShipmentRoutes';
 
 dotenv.config();
 
@@ -30,6 +33,7 @@ app.use(express.json());
 // }));
 
 app.use(trace);
+app.use(contextInjector);
 app.use((req: Request, res: Response, next) => {
   res.ok = function (data?: any) {
     return this.status(200).json({
@@ -59,6 +63,8 @@ app.use(performanceMonitor);
 app.use("/api/agents", agentRoutes);
 app.use("/api/dict", dictRoutes);
 app.use("/api/veryk", verykApiRoutes);
+app.use("/api/veryk/general", verykGeneralRoutes);
+app.use("/api/veryk/shipment", verykShipmentRoutes);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
