@@ -4,7 +4,7 @@ import { LoadingOutlined } from '@ant-design/icons';
 
 const antIcon = <LoadingOutlined style={{ fontSize: 48 }} spin />;
 
-const Loading: React.FC = () => {
+const Loading: React.FC<{ fullscreen?: boolean }> = ({ fullscreen = false }) => {
   return (
     <div style={{
       position: 'fixed',
@@ -18,7 +18,7 @@ const Loading: React.FC = () => {
       //backgroundColor: 'rgba(0, 0, 0, 0.5)',
       zIndex: 9999,
     }}>
-      <Spin indicator={antIcon} tip="Loading..." size="large" />
+      <Spin indicator={antIcon} size="large" fullscreen={fullscreen} />
     </div>
   );
 };

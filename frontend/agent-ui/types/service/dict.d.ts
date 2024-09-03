@@ -1,5 +1,5 @@
 declare namespace API.Service {
-  type DictData = {
+  type DictItem = {
     key: string;
     code: string;
     value: any;

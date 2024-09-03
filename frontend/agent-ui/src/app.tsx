@@ -25,10 +25,10 @@ const loginPath = '/user/login';
 export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
   currentUser?: API.CurrentUser;
-  dicts?: Record<string, API.Service.DictData[]>;
+  // dicts?: Record<string, API.Service.DictData[]>;
   loading?: boolean;
   fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
-  fetchDicts?: () => Promise<Record<string, API.Service.DictData[]> | undefined>;
+  // fetchDicts?: () => Promise<Record<string, API.Service.DictData[]> | undefined>;
 }> {
   const fetchUserInfo = async () => {
     try {
@@ -48,7 +48,7 @@ export async function getInitialState(): Promise<{
 
   const fetchDicts = async () => {
     try {
-      const response: API.R<Record<string, API.Service.DictData[]>> = await getDicts({
+      const response: API.R<Record<string, API.Service.DictItem[]>> = await getDicts({
         skipErrorHandler: true,
       });
       return response.data;
@@ -61,7 +61,7 @@ export async function getInitialState(): Promise<{
   //debugger
   const initialState = {
     fetchUserInfo,
-    fetchDicts,
+    // fetchDicts,
     loading: true,
     settings: defaultSettings as Partial<LayoutSettings>,
   };
@@ -69,16 +69,16 @@ export async function getInitialState(): Promise<{
   // 如果不是登录页面，执行
   const { location } = history;
   if (location.pathname !== loginPath) {
-    const [currentUser, dicts] = await Promise.all([
-      fetchUserInfo(),
-      fetchDicts()
-    ]);
-    //const currentUser = await fetchUserInfo();
+    // const [currentUser, dicts] = await Promise.all([
+    //   fetchUserInfo(),
+    //   fetchDicts()
+    // ]);
+    const currentUser = await fetchUserInfo();
     //const dicts = await fetchDicts();
     return {
       ...initialState,
       currentUser,
-      dicts,
+      //dicts,
       loading: false,
     };
   } else {
@@ -95,15 +95,16 @@ export async function getInitialState(): Promise<{
 
     const accessToken = getAccessToken();
     if (accessToken) {
-      const [currentUser, dicts] = await Promise.all([
-        fetchUserInfo(),
-        fetchDicts()
-      ]);
+      // const [currentUser, dicts] = await Promise.all([
+      //   fetchUserInfo(),
+      //   fetchDicts()
+      // ]);
+      const currentUser = await fetchUserInfo();
       history.push(searchParams.get('redirect') || '/');
       return {
         ...initialState,
         currentUser,
-        dicts,
+        //dicts,
         loading: false,
       };
     }
@@ -115,6 +116,7 @@ export async function getInitialState(): Promise<{
 
 // ProLayout 支持的api https://procomponents.ant.design/components/layout
 export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState, loading }) => {
+
   return {
     actionsRender: () => [<Question key="doc" />, <SelectLang key="SelectLang" />],
     avatarProps: {
@@ -129,6 +131,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState, loa
     },
     footerRender: () => <Footer />,
     onPageChange: () => {
+      console.log("Onpagechange");
       const { location } = history;
       // 如果没有登录，重定向到 login
       if (!initialState?.currentUser && location.pathname !== loginPath) {
@@ -175,6 +178,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState, loa
     childrenRender: (children) => {
       // console.log("Loading", initialState?.loading);
       // if (initialState?.loading) return <PageLoading />;
+      console.log("Childrenrender", initialState?.loading);
       return (
         <>
           {children}

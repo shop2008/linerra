@@ -9,7 +9,8 @@ import {
   TaobaoCircleOutlined,
   UserOutlined,
   WeiboCircleOutlined,
-  GoogleOutlined
+  GoogleOutlined,
+  GoogleCircleFilled
 } from '@ant-design/icons';
 import {
   LoginForm,
@@ -19,12 +20,13 @@ import {
   ProFormText,
 } from '@ant-design/pro-components';
 import { FormattedMessage, history, SelectLang, useIntl, useModel, Helmet } from '@umijs/max';
-import { Alert, message, Tabs } from 'antd';
+import { Alert, message, Spin, Tabs } from 'antd';
 import Settings from '../../../../config/defaultSettings';
 import React, { useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { createStyles } from 'antd-style';
 import { clearSessionToken, getAccessToken, setSessionToken } from '@/access';
+import Loading from '@/components/Loading';
 
 const useStyles = createStyles(({ token }) => {
   return {
@@ -66,21 +68,32 @@ const useStyles = createStyles(({ token }) => {
 
 const ActionIcons = () => {
   const { styles } = useStyles();
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <>
-      <AlipayCircleOutlined key="AlipayCircleOutlined" className={styles.action} />
+      {isLoading && <Loading fullscreen={true} />}
+      {/* <AlipayCircleOutlined key="AlipayCircleOutlined" className={styles.action} />
       <TaobaoCircleOutlined key="TaobaoCircleOutlined" className={styles.action} />
-      <WeiboCircleOutlined key="WeiboCircleOutlined" className={styles.action} />
-      <GoogleOutlined key="GoogleOutlined" className={styles.action}
+      <WeiboCircleOutlined key="WeiboCircleOutlined" className={styles.action} /> */}
+      {/* <Spin spinning={isGoogleLoading} size="small"> */}
+      <GoogleCircleFilled key="GoogleOutlined" className={styles.action}
         onClick={async () => {
-          const result = await initiateGoogleSignIn();
-          if (result.success && result.data?.url) {
-            window.location.href = result.data.url;
-          } else {
-            message.error('Failed to initiate Google sign-in');
+          setIsLoading(true);
+          try {
+            const result = await initiateGoogleSignIn();
+            if (result.success && result.data?.url) {
+              window.location.href = result.data.url;
+            } else {
+              message.error('Failed to initiate Google sign-in');
+            }
+          } catch (error) {
+            //message.error('Failed to initiate Google sign-in');
+          } finally {
+            //setIsLoading(false);
           }
         }} />
+      {/* </Spin> */}
     </>
   );
 };
@@ -115,6 +128,7 @@ const Login: React.FC = () => {
   //console.log("Login", null);
   const [type, setType] = useState<string>('signIn');
   const { initialState, setInitialState } = useModel('@@initialState');
+  //const { fetchDictsAsync, fetchDicts } = useModel('dicts');
   const { styles } = useStyles();
   const intl = useIntl();
 
@@ -131,19 +145,19 @@ const Login: React.FC = () => {
     }
   };
 
-  const fetchDicts = async () => {
-    const dicts = await initialState?.fetchDicts?.();
-    if (dicts) {
-      flushSync(() => {
-        setInitialState((s) => ({
-          ...s,
-          dicts,
-        }));
-      });
-    }
-  };
+  // const fetchDicts = async () => {
+  //   const dicts = await initialState?.fetchDicts?.();
+  //   if (dicts) {
+  //     flushSync(() => {
+  //       setInitialState((s) => ({
+  //         ...s,
+  //         dicts,
+  //       }));
+  //     });
+  //   }
+  // };
 
-  const [isLoading, setIsLoading] = useState(false);
+
 
 
   // useEffect(() => {
@@ -205,7 +219,9 @@ const Login: React.FC = () => {
           signInResult.data?.sessionId,
         );
         message.success(defaultLoginSuccessMessage);
-        await Promise.all([fetchUserInfo(), fetchDicts()]);
+        //fetchDictsAsync();
+        //fetchDicts();
+        await fetchUserInfo();
         const urlParams = new URL(window.location.href).searchParams;
         history.push(urlParams.get('redirect') || '/');
         return;
@@ -249,7 +265,7 @@ const Login: React.FC = () => {
         </title>
       </Helmet>
       <Lang />
-      {isLoading && <PageLoading fullscreen={true} />}
+
       <div
         style={{
           flex: '1',
