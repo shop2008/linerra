@@ -32,6 +32,10 @@ export async function getRegions(options?: Record<string, any>) {
 export async function postQuote(data: VerkType.QuoteRequest, options?: Record<string, any>) {
   return request<API.R<Array<VerkType.QuoteResponse>>>('/api/veryk/shipment/quote', {
     method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: data,
     ...(options || {}),
   });
 }

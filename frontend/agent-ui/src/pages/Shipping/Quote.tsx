@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Form,
   Card,
@@ -16,7 +16,8 @@ import {
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import useCarrierModel from '@/models/carrierModel';
 import { postQuote } from '@/services/service/verkApi';
-import ShipmentOverview from './ShipmentOverview'; // Import the new component
+import ShipmentOverview from './ShipmentOverview';
+import Loading from '@/components/Loading'; // Add this line
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -24,7 +25,7 @@ const { Step } = Steps;
 
 const Quote: React.FC = () => {
   const [form] = Form.useForm();
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState<any>({});
   const [packageType, setPackageType] = useState<string | undefined>(undefined);
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedRegions, setSelectedRegions] = useState({
@@ -43,7 +44,8 @@ const Quote: React.FC = () => {
   });
   const { regions, provincesByRegion, fetchRegions, fetchProvincesByRegion } = useCarrierModel();
   const [currentStep, setCurrentStep] = useState(0);
-  const [quoteResponse, setQuoteResponse] = useState<VerkType.QuoteResponse | null>(null);
+  const [quoteResponse, setQuoteResponse] = useState<Array<VerkType.QuoteResponse | null>>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchRegions();
@@ -85,8 +87,10 @@ const Quote: React.FC = () => {
 
   const handleNext = async () => {
     try {
+      setLoading(true);
       await form.validateFields();
       const formValues = form.getFieldsValue();
+      setFormData(formValues); // Store form data
 
       if (currentStep === 0) {
         const quoteRequest: VerkType.QuoteRequest = {
@@ -121,31 +125,43 @@ const Quote: React.FC = () => {
             vipAccount: formValues.reference,
           },
           package: {
-            packages: Array.from({ length: formValues.quantity }, (_, i) => ({
-              dimension: {
-                height: formValues[`dimensions_${i}`].height,
-                length: formValues[`dimensions_${i}`].length,
-                width: formValues[`dimensions_${i}`].width,
-              },
-              insurance: formValues[`insurance_${i}`],
-              weight: formValues[`weight_${i}`],
-            })),
+            packages:
+              formValues.packageType === 'env' || formValues.packageType === 'pak'
+                ? [
+                    {
+                      weight: formValues.weight,
+                      // For env and pak, we don't need dimensions or insurance
+                    },
+                  ]
+                : Array.from({ length: formValues.quantity || 1 }, (_, i) => ({
+                    dimension: {
+                      height: formValues[`dimensions_${i}`].height,
+                      length: formValues[`dimensions_${i}`].length,
+                      width: formValues[`dimensions_${i}`].width,
+                    },
+                    insurance: formValues[`insurance_${i}`],
+                    weight: formValues[`weight_${i}`],
+                  })),
             type: formValues.packageType,
           },
         };
 
-        console.log('request', quoteRequest);
         // Call the postQuote API
         const response = await postQuote(quoteRequest);
-        console.log('Quote response:', response);
-        setQuoteResponse(response); // Store the response in state
+        setQuoteResponse(response.data ?? []); // Store the response in state
       }
 
       setCurrentStep(currentStep + 1);
     } catch (error) {
       console.error('Form validation failed or API call error:', error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handlePrevious = useCallback(() => {
+    setCurrentStep(currentStep - 1);
+  }, [currentStep]);
 
   const steps = [
     { title: 'Quote', content: '' },
@@ -156,6 +172,7 @@ const Quote: React.FC = () => {
 
   return (
     <div>
+      {loading && <Loading />}
       <h1>Shipping Quote</h1>
       {currentStep === 0 ? (
         <>
@@ -195,7 +212,6 @@ const Quote: React.FC = () => {
                       filterOption={handleRegionSearch}
                       onChange={(value) => handleRegionChange(value, 'sender')}
                       defaultActiveFirstOption={false}
-                      initialValue="Canada"
                     >
                       {regions.map((region) => (
                         <Option key={region.id} value={region.id}>
@@ -247,7 +263,6 @@ const Quote: React.FC = () => {
                       filterOption={handleRegionSearch}
                       onChange={(value) => handleRegionChange(value, 'recipient')}
                       defaultActiveFirstOption={false}
-                      initialValue="Canada"
                     >
                       {regions.map((region) => (
                         <Option key={region.id} value={region.id}>
@@ -540,7 +555,12 @@ const Quote: React.FC = () => {
           </Form>
         </>
       ) : currentStep === 1 ? (
-        <ShipmentOverview quoteResponse={quoteResponse} />
+        <>
+          <ShipmentOverview quoteResponse={quoteResponse} formData={formData} />
+          <Button onClick={handlePrevious} style={{ marginTop: 16 }}>
+            Back
+          </Button>
+        </>
       ) : (
         // Other steps (if any)
         <div>Additional steps will be implemented here</div>
