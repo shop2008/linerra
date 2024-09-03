@@ -10,3 +10,4 @@ yarn.lock
 .system
 .DS_Store
 *.local.*
+.env

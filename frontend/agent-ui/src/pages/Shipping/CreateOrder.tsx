@@ -14,14 +14,19 @@ import {
   Modal,
   List,
   Alert,
+  Tabs,
+  Pagination,
 } from 'antd';
 import React, { useState, useEffect } from 'react';
+import { useModel, useLocation } from '@umijs/max';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
+const { TabPane } = Tabs;
 
 interface ShippingServiceFormProps {
-  selectedService: string;
+  selectedService: VerkType.Service;
+  selectedCarrier: VerkType.Carrier;
   onReselect: () => void;
   formData: any;
   onFormDataChange: (formData: any) => void;
@@ -29,6 +34,7 @@ interface ShippingServiceFormProps {
 
 const ShippingServiceForm: React.FC<ShippingServiceFormProps> = ({
   selectedService,
+  selectedCarrier,
   onReselect,
   formData,
   onFormDataChange,
@@ -97,9 +103,9 @@ const ShippingServiceForm: React.FC<ShippingServiceFormProps> = ({
                 <TruckOutlined style={{ fontSize: '50px', color: '#1890ff' }} />
                 <Space direction="vertical" size={0}>
                   <Title level={4} style={{ margin: 0 }}>
-                    Purolator
+                    {selectedCarrier.name}
                   </Title>
-                  <Text type="secondary">{selectedService.split(' - ')[0]}</Text>
+                  <Text type="secondary">{selectedService.name}</Text>
                 </Space>
               </Space>
             </Col>
@@ -534,9 +540,9 @@ const ShippingServiceForm: React.FC<ShippingServiceFormProps> = ({
             <TruckOutlined style={{ fontSize: '32px', color: '#1890ff' }} />
             <Space direction="vertical" size={0}>
               <Title level={5} style={{ margin: 0 }}>
-                Purolator
+                {selectedCarrier.name}
               </Title>
-              <Text type="secondary">{selectedService.split(' - ')[0]}</Text>
+              <Text type="secondary">{selectedService.name}</Text>
             </Space>
           </Space>
           <Space>
@@ -554,19 +560,35 @@ const ShippingServiceForm: React.FC<ShippingServiceFormProps> = ({
 };
 
 const CreateOrder: React.FC = () => {
-  const [isModalVisible, setIsModalVisible] = useState(true);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const { carriers, fetchCarriers } = useModel('carrierModel');
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedService, setSelectedService] = useState<VerkType.Service | null>(null);
   const [formData, setFormData] = useState({});
+  const [selectedCarrier, setSelectedCarrier] = useState<VerkType.Carrier | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const location = useLocation();
 
-  const services = [
-    { name: 'Ground', description: 'Standard ground shipping' },
-    { name: 'PurolatorExpress', description: 'Fast express shipping' },
-    { name: 'PurolatorExpressEnvelope', description: 'Express shipping for envelopes' },
-    { name: 'PurolatorGround', description: 'Economical ground shipping' },
-  ];
+  useEffect(() => {
+    fetchCarriers();
+    const { state } = location;
+    if (state && state.service && state.carrier) {
+      setSelectedService(state.service);
+      setSelectedCarrier(state.carrier);
+    } else {
+      setIsModalVisible(true);
+    }
+  }, [fetchCarriers, location]);
 
-  const handleServiceSelection = (service: { name: string; description: string }) => {
-    setSelectedService(`${service.name} - ${service.description}`);
+  const handleCarrierChange = (carrierId: string) => {
+    const carrier = carriers.find((c) => c.id === carrierId);
+    setSelectedCarrier(carrier || null);
+    setCurrentPage(1);
+  };
+
+  const handleServiceSelection = (carrier: VerkType.Carrier, service: VerkType.Service) => {
+    setSelectedService(service);
+    setSelectedCarrier(carrier);
     setIsModalVisible(false);
   };
 
@@ -578,6 +600,57 @@ const CreateOrder: React.FC = () => {
     setFormData(newFormData);
   };
 
+  const renderCarrierTabs = () => (
+    <Tabs onChange={handleCarrierChange}>
+      {carriers.map((carrier) => (
+        <TabPane tab={carrier.name} key={carrier.id}>
+          {renderServiceList(carrier)}
+        </TabPane>
+      ))}
+    </Tabs>
+  );
+
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+
+  const renderServiceList = (carrier: VerkType.Carrier) => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedServices = carrier.services.slice(startIndex, endIndex);
+
+    return (
+      <>
+        <List
+          itemLayout="horizontal"
+          dataSource={paginatedServices}
+          renderItem={(service) => (
+            <List.Item
+              onClick={() => handleServiceSelection(carrier, service)}
+              onMouseEnter={() => setHoveredItem(service.id)}
+              onMouseLeave={() => setHoveredItem(null)}
+              style={{
+                cursor: 'pointer',
+                padding: '12px 16px',
+                backgroundColor: hoveredItem === service.id ? '#f0f5ff' : 'transparent',
+                transition: 'background-color 0.3s',
+              }}
+            >
+              <List.Item.Meta
+                title={<span style={{ fontSize: '16px', fontWeight: 500 }}>{service.name}</span>}
+              />
+            </List.Item>
+          )}
+        />
+        <Pagination
+          current={currentPage}
+          total={carrier.services.length}
+          pageSize={pageSize}
+          onChange={(page) => setCurrentPage(page)}
+          style={{ marginTop: '16px', textAlign: 'right' }}
+        />
+      </>
+    );
+  };
+
   return (
     <div>
       <Modal
@@ -585,26 +658,14 @@ const CreateOrder: React.FC = () => {
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
+        width={800}
       >
-        <Space align="start" style={{ marginBottom: '20px' }}>
-          <TruckOutlined style={{ fontSize: '48px', color: '#1890ff' }} />
-          <Title level={3} style={{ margin: 0 }}>
-            Purolator
-          </Title>
-        </Space>
-        <List
-          itemLayout="horizontal"
-          dataSource={services}
-          renderItem={(item) => (
-            <List.Item onClick={() => handleServiceSelection(item)} style={{ cursor: 'pointer' }}>
-              <List.Item.Meta title={item.name} style={{ padding: '0px' }} />
-            </List.Item>
-          )}
-        />
+        {renderCarrierTabs()}
       </Modal>
-      {selectedService && (
+      {selectedService && selectedCarrier && (
         <ShippingServiceForm
           selectedService={selectedService}
+          selectedCarrier={selectedCarrier}
           onReselect={handleReselect}
           formData={formData}
           onFormDataChange={handleFormDataChange}
