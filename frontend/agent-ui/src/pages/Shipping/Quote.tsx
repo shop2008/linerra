@@ -50,7 +50,7 @@ const Quote: React.FC = () => {
   useEffect(() => {
     fetchRegions();
     fetchProvincesByRegion('CA'); // Fetch provinces for Canada
-  }, [fetchRegions, fetchProvincesByRegion]);
+  }, []);
 
   const onFinish = (values: any) => {
     console.log('Form values:', values);
