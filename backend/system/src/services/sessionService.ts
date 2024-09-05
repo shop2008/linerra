@@ -8,7 +8,7 @@ import AWS from 'aws-sdk'
 
 const dynamoClient = process.env.IS_OFFLINE ? new DynamoDBClient({
   region: 'localhost',
-  endpoint: 'http://localhost:8000',
+  endpoint: `http://localhost:${process.env.LOCAL_DYNAMO_DB_PORT}`,
   credentials: {
     accessKeyId: 'MockAccessKeyId',
     secretAccessKey: 'MockSecretAccessKey'

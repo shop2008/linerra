@@ -16,6 +16,7 @@ stages:
       agentUserPoolDomain: ${self:service}-user-pool-domain-${sls:stage}
       userSessionsTable: ${self:service}-user-sessions-${sls:stage}
       frontendUrl: ${env:FRONTEND_URL, 'http://localhost:8000'}
+      localDynamoDBPort: ${env:LOCAL_DYNAMO_DB_PORT, 8900}
 
 provider:
   name: aws
@@ -35,7 +36,8 @@ provider:
     VERYK_APP_SECRET: ${env:VERYK_APP_SECRET, param:verykAppSecret}
     VERYK_API_URL: ${env:VERYK_API_URL, param:verykApiUrl}
     FRONTEND_URL: ${param:frontendUrl}
-    #COGNITO_GOOGLE_CLIENT_ID: ${param:COGNITO_GOOGLE_CLIENT_ID, '860845154660-u81rc57q7sedp0oq6ak8cgdg2hlphsq5.apps.googleusercontent.com'}
+    LOCAL_DYNAMO_DB_PORT: ${param:localDynamoDBPort}
+
   iam:
     role:
       statements:
@@ -198,11 +200,9 @@ custom:
   serverless-offline:
     reloadHandler: true
   dynamodb:
-    stages:
-      - ${opt:stage, 'dev'}
     start:
       docker: true
-      port: 8000
+      port: ${param:localDynamoDBPort}
       migrate: true
       noStart: true
       #sharedDb: true
