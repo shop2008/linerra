@@ -191,5 +191,24 @@ resources:
           AttributeName: expirationTime
           Enabled: true
 
-#package:
-#  individually: true
+package:
+ individually: true
+
+custom:
+  serverless-offline:
+    reloadHandler: true
+  dynamodb:
+    stages:
+      - ${opt:stage, 'dev'}
+    start:
+      docker: true
+      port: 8000
+      migrate: true
+      noStart: true
+      #sharedDb: true
+
+plugins:
+  - serverless-cloudside-plugin
+  - serverless-dynamodb
+  - serverless-offline
+#  - serverless-dynamodb-client

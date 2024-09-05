@@ -14,7 +14,7 @@ import { ErrorShowType } from "@linerra/system/src/enum/errorShowType";
 import dictRoutes from "./routes/dictRoutes";
 import verykApiRoutes from "./routes/verykApiRoutes";
 import verykGeneralRoutes from './routes/verykGeneralRoutes';
-import { contextInjector } from 'system/src/middlewares/contextInjector';
+import { contextInjector } from '@linerra/system/src/middlewares/contextInjector';
 import verykShipmentRoutes from './routes/verykShipmentRoutes';
 
 dotenv.config();

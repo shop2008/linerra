@@ -1,6 +1,6 @@
 import { Carrier } from "../../models/veryk/general.entity";
 import { verykCarriers } from "../../constant/verykConstant";
-import { getProvince, getRegion } from "system/src/utils/verykUtils";
+import { getProvince, getRegion } from "../../utils/verykUtils";
 
 export class VerykGeneralService {
   public static instance: VerykGeneralService = new VerykGeneralService();

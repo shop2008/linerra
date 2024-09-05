@@ -2,10 +2,9 @@
 import { useRequest } from 'ahooks';
 import { getDicts } from '../services/service/dict';
 import { getAccessToken } from '@/access';
-import { useAsync } from 'react-use';
 
 
-export default function Page() {
+export default () => {
   const { data: dicts, loading: loading, runAsync: fetchDictsAsync, run: fetchDicts } = useRequest(async () => {
     const response: API.R<Record<string, API.Service.DictItem[]>> = await getDicts({
       skipErrorHandler: true,
@@ -15,7 +14,7 @@ export default function Page() {
     manual: true,
   });
 
-  const getDictItems = async (dictType: string) => {
+  const getDictItems = (dictType: string) => async () => {
     let loadedDicts: Record<string, API.Service.DictItem[]> | undefined = dicts;
     if (!loadedDicts) {
       const accessToken = getAccessToken();
@@ -26,7 +25,18 @@ export default function Page() {
     return loadedDicts?.[dictType] || [];
   };
 
-  const getDictItem = async (dictType: string, value: string) => {
+  // const getDictItemsAsync = useAsync(async (dictType: string) => {
+  //   if (!dicts) {
+  //     const accessToken = getAccessToken();
+  //     if (accessToken) {
+  //       const loadedDicts = await fetchDictsAsync();
+  //       return loadedDicts?.[dictType] || [];
+  //     }
+  //   }
+  //   return dicts?.[dictType] || [];
+  // }, [dicts, fetchDictsAsync]);
+
+  const getDictItem = (dictType: string, value: string) => async () => {
     let loadedDicts: Record<string, API.Service.DictItem[]> | undefined = dicts;
     if (!loadedDicts) {
       const accessToken = getAccessToken();
@@ -37,7 +47,7 @@ export default function Page() {
     return loadedDicts?.[dictType]?.find((item) => item.value === value) || null;
   };
 
-  const getDictItemCode = async (dictType: string, value: string) => {
+  const getDictItemCode = (dictType: string, value: string) => async () => {
     let loadedDicts: Record<string, API.Service.DictItem[]> | undefined = dicts;
     if (!loadedDicts) {
       const accessToken = getAccessToken();

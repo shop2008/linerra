@@ -7,7 +7,7 @@ export const validate = (schema: Joi.ObjectSchema) => {
     const { error } = schema.validate(req.body);
     if (error) {
       const errorMessage = error.details.map((detail) => detail.message).join(', ');
-      return next(new ServiceError(errorMessage, 400));
+      return next(new ServiceError(errorMessage, "VALIDATION_ERROR"));
     }
     next();
   };

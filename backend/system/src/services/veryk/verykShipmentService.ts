@@ -1,7 +1,7 @@
-import { verykCarriers } from "system/src/constant/verykConstant";
-import { quoteApiResToResVO, quoteReqVOToApiReq } from "system/src/models/veryk/quote.convert";
-import { QuoteReqVO, QuoteResVO } from "system/src/models/veryk/quote.entity";
-import { quote } from "system/src/utils/verykUtils";
+import { verykCarriers } from "../../constant/verykConstant";
+import { quoteApiResToResVO, quoteReqVOToApiReq } from "../../models/veryk/quote.convert";
+import { QuoteReqVO, QuoteResVO } from "../../models/veryk/quote.entity";
+import { quote } from "../../utils/verykUtils";
 
 export class VerykShipmentService {
   public static instance: VerykShipmentService = new VerykShipmentService();

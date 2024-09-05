@@ -1,25 +1,41 @@
 {
   "extends": "../../tsconfig.settings.json",
   "compilerOptions": {
-    "target": "es2017",
-    "module": "commonjs",
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    //"target": "es2017",
+    //"module": "commonjs",
+    // "outDir": "./dist",
+    //"rootDir": "./src",
+    "outDir": ".webpack",
+    "rootDir": "../",
+    "baseUrl": "../",
+    // "strict": true,
+    // "skipLibCheck": true,
+    // "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "composite": true,
+    "sourceMap": true,
     "paths": {
-      "system": [
-        "../system/src"
+      // "system": [
+      //   "../system/src"
+      // ],
+      // "@linerra/system": [
+      //   "../system"
+      // ],
+      "@linerra/system/*": [
+        "../system/src/*"
       ]
     }
   },
   "include": [
     "src/**/*",
-    "src"
+    "src",
+    "../system/src/**/*"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".webpack",
+    ".serverless"
   ],
   "references": [
     {

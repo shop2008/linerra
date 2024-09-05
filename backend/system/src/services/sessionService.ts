@@ -2,16 +2,24 @@ import { Table, Entity, schema, string, number, PutItemCommand, GetItemCommand, 
 import { v4 as uuidv4 } from 'uuid';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb'
+import AWS from 'aws-sdk'
 
 
-const dynamoClient = new DynamoDBClient();
+
+const dynamoClient = process.env.IS_OFFLINE ? new DynamoDBClient({
+  region: 'localhost',
+  endpoint: 'http://localhost:8000',
+  credentials: {
+    accessKeyId: 'MockAccessKeyId',
+    secretAccessKey: 'MockSecretAccessKey'
+  },
+}) : new DynamoDBClient();
 const documentClient = DynamoDBDocumentClient.from(dynamoClient, {
   marshallOptions: {
     removeUndefinedValues: true,
     convertEmptyValues: false
   },
 });
-
 const UserSessionsTable = new Table({
   name: process.env.USER_SESSIONS_TABLE!,
   partitionKey: { name: 'userId', type: 'string' },
