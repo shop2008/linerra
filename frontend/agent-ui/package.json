@@ -48,6 +48,7 @@
     "@ant-design/icons": "^4.8.3",
     "@ant-design/pro-components": "^2.7.9",
     "@umijs/route-utils": "^2.2.2",
+    "ahooks": "^3.8.1",
     "antd": "^5.18.0",
     "antd-style": "^3.6.2",
     "classnames": "^2.5.1",
