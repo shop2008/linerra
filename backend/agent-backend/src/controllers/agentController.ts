@@ -2,12 +2,10 @@ import { Request, Response } from 'express';
 import { CognitoService } from '@linerra/system/src/services/cognitoService';
 import logger from '@linerra/system/src/utils/logger';
 import { ErrorShowType } from '@linerra/system/src/enum/errorShowType';
-import { SessionService } from '@linerra/system/src/services/sessionService';
 import { accessVerifier, idTokenVerifier } from '@linerra/system/src/utils/tokenVerifier';
 
 
 const cognitoService = CognitoService.instance;
-const sessionService = SessionService.instance;
 
 
 export class AgentController {

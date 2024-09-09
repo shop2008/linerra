@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { accessVerifier } from '@linerra/system/src/utils/tokenVerifier';
+import { accessVerifier, idTokenVerifier } from '@linerra/system/src/utils/tokenVerifier';
 
 
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
@@ -12,18 +12,22 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = await accessVerifier.verify(token);
 
+
     // 直接从JWT payload中提取用户信息
     if (!req.context) {
       req.context = {};
     }
-    req.context.user = {
-      sub: payload.sub,
-      email: payload.email,
-      // 可以根据需要添加更多字段
-    };
     req.context.accessToken = token;
     req.context.idToken = req.headers['identity-token'];
     req.context.sessionId = req.headers['session-id'];
+
+    const idTokenPayload = await idTokenVerifier.verify(req.context.idToken);
+    req.context.user = {
+      sub: payload.sub,
+      email: payload.email,
+      stationId: idTokenPayload['custom:stationId'],
+      // 可以根据需要添加更多字段
+    };
 
     next();
   } catch (err) {

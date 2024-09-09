@@ -1,7 +1,7 @@
 import { CognitoIdentityProviderClient, SignUpCommand, InitiateAuthCommand, SignUpCommandOutput, GetUserCommand } from "@aws-sdk/client-cognito-identity-provider";
 import { AuthenticationDetails, CognitoUser, CognitoUserPool } from 'amazon-cognito-identity-js';
 import logger from "../utils/logger";
-import { SessionService } from "./sessionService";
+import { AgentSessionService } from "./agentSessionService";
 import axios from 'axios';
 
 const client = new CognitoIdentityProviderClient({ region: process.env.AGENT_USER_POOL_REGION || process.env.AWS_REGION });
@@ -11,7 +11,7 @@ export class CognitoService {
   private clientId: string;
   private domain: string;
   private userPool: CognitoUserPool;
-  private sessionService: SessionService;
+  private agentSessionService: AgentSessionService;
   public static instance: CognitoService = new CognitoService();
 
   constructor() {
@@ -22,7 +22,7 @@ export class CognitoService {
       UserPoolId: process.env.AGENT_USER_POOL_ID!,
       ClientId: process.env.AGENT_USER_POOL_CLIENT_ID!,
     });
-    this.sessionService = SessionService.instance;
+    this.agentSessionService = AgentSessionService.instance;
   }
 
   async signUp(email: string, password: string) {
@@ -87,7 +87,7 @@ export class CognitoService {
           const accessToken = result.getAccessToken().getJwtToken();
           const userId = result.getIdToken().payload.sub;
           const after30Days = new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000);
-          const sessionId = await this.sessionService.createSession(userId, idToken, Math.floor(after30Days.getTime() / 1000));
+          const sessionId = await this.agentSessionService.createSession(userId, idToken, Math.floor(after30Days.getTime() / 1000));
 
           resolve({ idToken, accessToken, userId, sessionId });
 
@@ -119,13 +119,13 @@ export class CognitoService {
   }
 
   async handleTokenRefresh(userId: string, sessionId: string, accessToken: string, idToken: string): Promise<any> {
-    const session = await this.sessionService.getSession(userId, sessionId);
+    const session = await this.agentSessionService.getSession(userId, sessionId);
     if (!session || session.expirationTime < Math.floor(Date.now() / 1000)) {
       throw new Error('Session expired or not found');
     }
 
     const tokens = await this.refreshTokens(session.refreshToken);
-    await this.sessionService.updateSessionLastUsed(userId, sessionId);
+    await this.agentSessionService.updateSessionLastUsed(userId, sessionId);
 
     return {
       accessToken: tokens.AccessToken,

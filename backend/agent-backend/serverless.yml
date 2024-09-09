@@ -14,7 +14,7 @@ stages:
       agentUserPoolName: ${self:service}-user-pool-${sls:stage}
       agentUserPoolClientName: ${self:service}-user-pool-client-${sls:stage}
       agentUserPoolDomain: ${self:service}-user-pool-domain-${sls:stage}
-      userSessionsTable: ${self:service}-user-sessions-${sls:stage}
+      mainTable: ${param:mainTable-${sls:stage}, '${sls:stage}_linerra_main'}
       frontendUrl: ${env:FRONTEND_URL, 'http://localhost:8000'}
       localDynamoDBPort: ${env:LOCAL_DYNAMO_DB_PORT, 8900}
 
@@ -31,7 +31,7 @@ provider:
     AGENT_USER_POOL_CLIENT_ID: !Ref AgentUserPoolClient
     AGENT_USER_POOL_REGION: ${self:provider.region}
     AGENT_USER_POOL_DOMAIN: ${param:agentUserPoolDomain}
-    USER_SESSIONS_TABLE: ${param:userSessionsTable}
+    MAIN_TABLE: ${param:mainTable}
     VERYK_APP_ID: ${env:VERYK_APP_ID, param:verykAppId}
     VERYK_APP_SECRET: ${env:VERYK_APP_SECRET, param:verykAppSecret}
     VERYK_API_URL: ${env:VERYK_API_URL, param:verykApiUrl}
@@ -64,8 +64,9 @@ provider:
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
             - dynamodb:Query
+            - dynamodb:Scan
           Resource:
-            - Fn::GetAtt: [UserSessionsTable, Arn]
+            - Fn::GetAtt: [MainTable, Arn]
 
 functions:
   api:
@@ -174,21 +175,34 @@ resources:
 
 
 
-    UserSessionsTable:
+    MainTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${param:userSessionsTable}
+        TableName: ${param:mainTable}
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
-          - AttributeName: userId
+          - AttributeName: PK
             AttributeType: S
-          - AttributeName: sessionId
+          - AttributeName: SK
+            AttributeType: S
+          - AttributeName: GSI1PK
+            AttributeType: S
+          - AttributeName: GSI1SK
             AttributeType: S
         KeySchema:
-          - AttributeName: userId
+          - AttributeName: PK
             KeyType: HASH
-          - AttributeName: sessionId
+          - AttributeName: SK
             KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: GSI1
+            KeySchema:
+              - AttributeName: GSI1PK
+                KeyType: HASH
+              - AttributeName: GSI1SK
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
         TimeToLiveSpecification:
           AttributeName: expirationTime
           Enabled: true
