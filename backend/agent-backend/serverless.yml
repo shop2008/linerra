@@ -127,6 +127,21 @@ resources:
         UserAttributeUpdateSettings:
           AttributesRequireVerificationBeforeUpdate:
             - email
+        Schema:
+          - AttributeDataType: String
+            Name: stationId
+            Mutable: true
+            #Required: true
+            StringAttributeConstraints:
+              MinLength: 36
+              MaxLength: 36
+          - AttributeDataType: String
+            Name: stationNo
+            Mutable: true
+            #Required: true
+            StringAttributeConstraints:
+              MinLength: 2
+              MaxLength: 2
 
     AgentUserPoolClient:
       Type: AWS::Cognito::UserPoolClient
@@ -151,6 +166,12 @@ resources:
           - ${param:frontendUrl}/user/login
         SupportedIdentityProviders:
           - Google
+        WriteAttributes:
+          - email
+          - name
+          - phone_number
+          - custom:stationId
+          - custom:stationNo
 
 
     AgentUserPoolDomain:

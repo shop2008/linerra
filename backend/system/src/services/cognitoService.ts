@@ -3,6 +3,8 @@ import { AuthenticationDetails, CognitoUser, CognitoUserPool } from 'amazon-cogn
 import logger from "../utils/logger";
 import { AgentSessionService } from "./agentSessionService";
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+import { generateRandomString } from "../utils/utils";
 
 const client = new CognitoIdentityProviderClient({ region: process.env.AGENT_USER_POOL_REGION || process.env.AWS_REGION });
 
@@ -34,6 +36,14 @@ export class CognitoService {
         {
           Name: 'email',
           Value: email,
+        },
+        {
+          Name: 'custom:stationId',
+          Value: uuidv4(),
+        },
+        {
+          Name: 'custom:stationNo',
+          Value: generateRandomString(2),
         },
       ],
     });
