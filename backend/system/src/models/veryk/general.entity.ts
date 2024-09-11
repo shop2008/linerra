@@ -33,3 +33,21 @@ export interface Province {
   name: string;
   code: string;
 }
+
+
+export interface CarrierApiRes {
+  id: string;
+  code: string;
+  group_code: string;
+  name: string;
+  region_id: string;
+  currency: Currency;
+}
+
+export interface ServiceApiRes {
+  id: string;
+  code: string;
+  name: string;
+  eta: string;
+  carrier: CarrierApiRes;
+}

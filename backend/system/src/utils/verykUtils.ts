@@ -3,6 +3,7 @@ import axios from 'axios';
 import { ServiceError } from './serviceError';
 import { QuoteApiReq } from '../models/veryk/quote.entity';
 import { ProvinceApiReq } from '../models/veryk.entity';
+import { ShipmentApiReq } from '../models/veryk/shipment.entity';
 
 const verykApiUrl = process.env.VERYK_API_URL;
 const verykAppId = process.env.VERYK_APP_ID;
@@ -100,6 +101,38 @@ export async function getAccount(acceptLanguage?: string) {
 
 export async function quote(params: QuoteApiReq, acceptLanguage?: string) {
   const url = buildUrl('shipment/quote');
+  const headers = acceptLanguage ? { 'Accept-Language': acceptLanguage } : {};
+
+  let response = await axios.post(url, params, { headers });
+  return getResponseData(response);
+}
+
+// export async function submit(params: ShipmentApiReq, acceptLanguage?: string) {
+//   const url = buildUrl('shipment/submit');
+//   const headers = acceptLanguage ? { 'Accept-Language': acceptLanguage } : {};
+
+//   let response = await axios.post(url, params, { headers });
+//   return getResponseData(response);
+// }
+
+export async function create(params: ShipmentApiReq, acceptLanguage?: string) {
+  const url = buildUrl('shipment/create');
+  const headers = acceptLanguage ? { 'Accept-Language': acceptLanguage } : {};
+
+  let response = await axios.post(url, params, { headers });
+  return getResponseData(response);
+}
+
+export async function shipmentList(params: { page?: number, pageSize?: number, keyword?: string }, acceptLanguage?: string) {
+  const url = buildUrl('shipment/list');
+  const headers = acceptLanguage ? { 'Accept-Language': acceptLanguage } : {};
+
+  let response = await axios.post(url, params, { headers });
+  return getResponseData(response);
+}
+
+export async function shipmentDetail(params: { id: string }, acceptLanguage?: string) {
+  const url = buildUrl('shipment/detail');
   const headers = acceptLanguage ? { 'Accept-Language': acceptLanguage } : {};
 
   let response = await axios.post(url, params, { headers });

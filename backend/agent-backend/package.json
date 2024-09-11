@@ -41,6 +41,8 @@
   "scripts": {
     "lint": "eslint . --ext .ts,.js",
     "lint:fix": "eslint . --ext .ts,.js --fix",
-    "build": "tsc"
+    "build": "tsc",
+    "local:hw": "sls offline cloudside -s hw",
+    "local:gigi": "sls offline cloudside -s gigi"
   }
 }

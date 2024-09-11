@@ -26,6 +26,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
       sub: payload.sub,
       email: payload.email,
       stationId: idTokenPayload['custom:stationId'],
+      stationNo: idTokenPayload['custom:stationNo'],
       // 可以根据需要添加更多字段
     };
 

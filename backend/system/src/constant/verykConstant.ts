@@ -1,4 +1,4 @@
-import { Carrier } from "../models/veryk/general.entity";
+import { Carrier, Currency } from "../models/veryk/general.entity";
 
 export const verykCarriers: Carrier[] = [
   {
@@ -394,3 +394,17 @@ export const verykCarriers: Carrier[] = [
     ]
   }
 ];
+
+// export const defaultCurrency: Currency = {
+//   code: "CAD",
+//   symbol: "$",
+//   value: "0.00"
+// };
+
+export const getDefaultCurrency = (value: number): Currency => {
+  return {
+    code: "CAD",
+    symbol: "$",
+    value: value.toFixed(2)
+  };
+};
