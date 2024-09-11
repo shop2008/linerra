@@ -11,7 +11,7 @@ router.get("/getAvailableCarriers", verykShipmentController.getAvailableCarriers
 router.post("/quote", verykShipmentController.quote);
 router.post("/save", verykShipmentController.save);
 router.get("/get/:number", verykShipmentController.get);
-router.get("/getPage", verykShipmentController.getPage);
+router.get("/page", verykShipmentController.getPage);
 router.get("/shipmentList", verykShipmentController.shipmentList);
 router.get("/shipmentDetail/:id", verykShipmentController.shipmentDetail);
 export default router;
