@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   getCarriers,
   getAvailableCarriers,
@@ -8,22 +8,18 @@ import {
 
 export default () => {
   const [carriers, setCarriers] = useState<VerkType.Carrier[]>([]);
+  const [regions, setRegions] = useState<VerkType.Region[]>([]);
   const [provincesByRegion, setProvincesByRegion] = useState<Record<string, VerkType.Province[]>>(
     {},
   );
-  const [regions, setRegions] = useState<VerkType.Region[]>([]);
-  const dataFetchedRef = useRef({
+  const [modelLoading, setModelLoading] = useState<Record<string, boolean>>({
     carriers: false,
     regions: false,
   });
-  const ongoingFetchesRef = useRef<Record<string, boolean>>({});
-  const provincesByRegionRef = useRef<Record<string, VerkType.Province[]>>({});
 
-  const fetchCarriers = useCallback(async (forceRefresh = false) => {
-    if (!forceRefresh && dataFetchedRef.current.carriers) return;
-    if (ongoingFetchesRef.current.carriers) return;
-
-    ongoingFetchesRef.current.carriers = true;
+  const fetchCarriers = useCallback(async () => {
+    if (carriers.length > 0) return;
+    setModelLoading((prev) => ({ ...prev, carriers: true }));
     try {
       const [carriersResponse, availableCarrierIds] = await Promise.all([
         getCarriers(),
@@ -36,60 +32,57 @@ export default () => {
           availableCarrierIdSet.has(carrier.id.toString()),
         );
         setCarriers(filteredCarriers);
-        dataFetchedRef.current.carriers = true;
       }
     } catch (error) {
       console.error('Error fetching carriers:', error);
     } finally {
-      ongoingFetchesRef.current.carriers = false;
+      setModelLoading((prev) => ({ ...prev, carriers: false }));
     }
-  }, []);
+  }, [carriers]);
 
-  const fetchProvincesByRegion = useCallback(async (regionId: string, forceRefresh = false) => {
-    if (!forceRefresh && provincesByRegionRef.current[regionId]) return;
-    if (ongoingFetchesRef.current[`provinces_${regionId}`]) return;
-    console.log('fetchProvincesByRegion provincesByRegionRef', provincesByRegionRef.current);
-    console.log('fetchProvincesByRegion provincesByRegionR', provincesByRegion);
-
-    ongoingFetchesRef.current[`provinces_${regionId}`] = true;
-    try {
-      const response = await getProvinces(regionId);
-      if (response.data) {
-        provincesByRegionRef.current[regionId] = response.data;
-        setProvincesByRegion((prevState) => ({
-          ...prevState,
-          [regionId]: response.data,
-        }));
+  const fetchProvincesByRegion = useCallback(
+    async (regionId: string) => {
+      if (provincesByRegion[regionId]) return;
+      try {
+        const response = await getProvinces(regionId);
+        if (response.data) {
+          setProvincesByRegion((prevState) => ({
+            ...prevState,
+            [regionId]: response.data,
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching provinces:', error);
       }
-    } catch (error) {
-      console.error('Error fetching provinces:', error);
-    } finally {
-      ongoingFetchesRef.current[`provinces_${regionId}`] = false;
-    }
-  }, []);
+    },
+    [provincesByRegion],
+  );
 
-  const fetchRegions = useCallback(async (forceRefresh = false) => {
-    if (!forceRefresh && dataFetchedRef.current.regions) return;
-    if (ongoingFetchesRef.current.regions) return;
-
-    ongoingFetchesRef.current.regions = true;
+  const fetchRegions = useCallback(async () => {
+    if (regions.length > 0) return;
+    setModelLoading((prev) => ({ ...prev, regions: true }));
     try {
       const response = await getRegions();
       if (response.data) {
         setRegions(response.data);
-        dataFetchedRef.current.regions = true;
       }
     } catch (error) {
       console.error('Error fetching regions:', error);
     } finally {
-      ongoingFetchesRef.current.regions = false;
+      setModelLoading((prev) => ({ ...prev, regions: false }));
     }
+  }, [regions]);
+
+  useEffect(() => {
+    fetchCarriers();
+    fetchRegions();
   }, []);
 
   return {
     carriers,
     regions,
-    provincesByRegion: provincesByRegionRef.current,
+    provincesByRegion,
+    modelLoading,
     fetchCarriers,
     fetchRegions,
     fetchProvincesByRegion,

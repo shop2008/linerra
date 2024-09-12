@@ -1,14 +1,19 @@
 import React from 'react';
-import { Card, Table, Typography, Descriptions, Row, Col } from 'antd';
+import { Card, Table, Typography, Descriptions, Row, Col, Collapse, Button } from 'antd';
 
 const { Title } = Typography;
 
 interface ShipmentOverviewProps {
   quoteResponse: Array<VerkType.QuoteResponse | null>;
   formData: any;
+  onSelectQuote: (quote: VerkType.QuoteResponse, formData: any) => void;
 }
 
-const ShipmentOverview: React.FC<ShipmentOverviewProps> = ({ quoteResponse, formData }) => {
+const ShipmentOverview: React.FC<ShipmentOverviewProps> = ({
+  quoteResponse,
+  formData,
+  onSelectQuote,
+}) => {
   console.log('quoteResponse', quoteResponse);
   console.log('formData', formData);
 
@@ -25,6 +30,9 @@ const ShipmentOverview: React.FC<ShipmentOverviewProps> = ({ quoteResponse, form
         carrierCode: quote.carrierCode,
         carrierId: quote.carrierId,
         service: service.name,
+        chargeDetails: service.chargeDetails || [],
+        taxDetails: service.taxDetails || [],
+        freight: service.freight,
         estimatedDelivery: service.eta || 'N/A',
         totalCost: service.charge ? `$${parseFloat(service.charge).toFixed(2)}` : 'N/A',
       })),
@@ -50,6 +58,15 @@ const ShipmentOverview: React.FC<ShipmentOverviewProps> = ({ quoteResponse, form
       title: 'Total Cost',
       dataIndex: 'totalCost',
       key: 'totalCost',
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      render: (_, record: VerkType.QuoteResponse) => (
+        <Button onClick={() => onSelectQuote(record, formData)} type="primary">
+          Select
+        </Button>
+      ),
     },
   ];
 
@@ -137,7 +154,33 @@ const ShipmentOverview: React.FC<ShipmentOverviewProps> = ({ quoteResponse, form
       <Title level={4} style={{ marginTop: 24 }}>
         Select Service
       </Title>
-      <Table columns={quoteColumns} dataSource={quoteData} />
+      <Table
+        columns={quoteColumns}
+        dataSource={quoteData}
+        expandable={{
+          expandRowByClick: true,
+          expandedRowRender: (record) => (
+            <Descriptions column={1} bordered size="small">
+              <Descriptions.Item label="Freight">
+                ${parseFloat(record.freight).toFixed(2)}
+              </Descriptions.Item>
+              {record.chargeDetails.map((charge: any, index: number) => (
+                <Descriptions.Item key={index} label={charge.name}>
+                  ${parseFloat(charge.price).toFixed(2)}
+                </Descriptions.Item>
+              ))}
+              {record.taxDetails.map((tax: any, index: number) => (
+                <Descriptions.Item key={index} label={tax.name}>
+                  ${parseFloat(tax.price).toFixed(2)}
+                </Descriptions.Item>
+              ))}
+              <Descriptions.Item label={<Typography.Text strong>Total Cost</Typography.Text>}>
+                <Typography.Text strong>{record.totalCost}</Typography.Text>
+              </Descriptions.Item>
+            </Descriptions>
+          ),
+        }}
+      />
     </Card>
   );
 };

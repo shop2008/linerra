@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Alert, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useModel, history } from '@umijs/max';
@@ -41,12 +41,8 @@ const handleOrderClick = (service: VerkType.Service, carrier: VerkType.Carrier) 
 };
 
 const MyServices: React.FC = () => {
-  const { carriers, loading, fetchCarriers } = useModel('carrierModel');
+  const { carriers, modelLoading } = useModel('carrierModel');
   const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([]);
-
-  useEffect(() => {
-    fetchCarriers();
-  }, [fetchCarriers]);
 
   const formattedCarriers = carriers.map((carrier: VerkType.Carrier) => ({
     key: carrier.id,
@@ -90,7 +86,7 @@ const MyServices: React.FC = () => {
           onClick: () => onTableRowExpand(!expandedRowKeys.includes(record.key), record),
         })}
         dataSource={formattedCarriers}
-        loading={loading}
+        modelLoading={modelLoading}
         showHeader={false}
       />
     </div>
