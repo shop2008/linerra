@@ -39,3 +39,14 @@ export async function postQuote(data: VerkType.QuoteRequest, options?: Record<st
     ...(options || {}),
   });
 }
+
+export async function postShipment(data: VerkType.QuoteRequest, options?: Record<string, any>) {
+  return request<API.R<{ number: string }>>('/api/veryk/shipment/save', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: data,
+    ...(options || {}),
+  });
+}

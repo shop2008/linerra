@@ -1,30 +1,30 @@
 import React from 'react';
-import { Card, Table, Typography, Descriptions, Row, Col, Collapse, Button } from 'antd';
+import { Card, Table, Typography, Descriptions, Row, Col, Button, FormInstance } from 'antd';
 
 const { Title } = Typography;
 
 interface ShipmentOverviewProps {
+  form: FormInstance;
   quoteResponse: Array<VerkType.QuoteResponse | null>;
-  formData: any;
-  onSelectQuote: (quote: VerkType.QuoteResponse, formData: any) => void;
+  onSelectQuote: (quote: VerkType.QuoteResponse) => void;
 }
 
 const ShipmentOverview: React.FC<ShipmentOverviewProps> = ({
+  form,
   quoteResponse,
-  formData,
   onSelectQuote,
 }) => {
-  console.log('quoteResponse', quoteResponse);
-  console.log('formData', formData);
-
   if (!quoteResponse || quoteResponse.length === 0) {
     return <div>No quote data available</div>;
   }
+
+  const formData = form.getFieldsValue();
 
   const quoteData = quoteResponse
     .filter((quote): quote is VerkType.QuoteResponse => quote !== null)
     .flatMap((quote) =>
       quote.services.map((service, serviceIndex) => ({
+        serviceId: service.id,
         key: `${quote.carrierCode}-${serviceIndex}`,
         carrier: quote.name,
         carrierCode: quote.carrierCode,
@@ -63,7 +63,7 @@ const ShipmentOverview: React.FC<ShipmentOverviewProps> = ({
       title: 'Action',
       key: 'action',
       render: (_, record: VerkType.QuoteResponse) => (
-        <Button onClick={() => onSelectQuote(record, formData)} type="primary">
+        <Button onClick={() => onSelectQuote(record)} type="primary">
           Select
         </Button>
       ),

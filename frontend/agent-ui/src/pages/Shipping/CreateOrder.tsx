@@ -6,18 +6,23 @@ import {
   Col,
   Form,
   Row,
-  Select,
+  Alert,
   Space,
   Typography,
   Modal,
   List,
   Tabs,
   Pagination,
+  message,
 } from 'antd';
 import React, { useState, useEffect } from 'react';
 import { useModel, useLocation } from '@umijs/max';
-import ShipmentForm from './ShipmentForm';
 import Loading from '@/components/Loading';
+import ShippingDetailsForm from './ShippingDetailsForm';
+import PackageInformationForm from './PackageInformationForm';
+import AdditionalOptionsForm from './AdditionalOptionsForm';
+import { postShipment } from '@/services/service/verkApi';
+import OrderSuccess from './OrderSuccess';
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -26,22 +31,104 @@ interface ShippingServiceFormProps {
   selectedService: VerkType.Service;
   selectedCarrier: VerkType.Carrier;
   onReselect: () => void;
-  formData: any;
-  onFormDataChange: (formData: any) => void;
+  // Removed formData prop
 }
 
 const ShippingServiceForm: React.FC<ShippingServiceFormProps> = ({
   selectedService,
   selectedCarrier,
   onReselect,
-  formData,
-  onFormDataChange,
+  // Removed formData and onFormDataChange props
 }) => {
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const [orderNumber, setOrderNumber] = useState('');
 
-  const handleFormValuesChange = (changedValues: any, allValues: any) => {
-    onFormDataChange(allValues);
+  // Remove handleFormValuesChange function
+
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      await form.validateFields();
+      const formValues = form.getFieldsValue();
+
+      const shipmentData: VerkType.QuoteRequest = {
+        serviceId: selectedService.id,
+        initiation: {
+          address: formValues.senderAddress1,
+          address2: formValues.senderAddress2 || '',
+          address3: formValues.senderAddress3,
+          city: formValues.senderCity,
+          company: formValues.senderCompany || '',
+          mobilePhone: formValues.senderMobile,
+          name: formValues.senderName,
+          postalCode: formValues.senderPostalCode.replace(/\s/g, ''),
+          province: formValues.senderProvinceObject,
+          regionId: 'CA',
+        },
+        destination: {
+          address: formValues.recipientAddress1,
+          address2: formValues.recipientAddress2 || '',
+          address3: formValues.recipientAddress3,
+          city: formValues.recipientCity,
+          company: formValues.recipientCompany,
+          mobilePhone: formValues.recipientMobile,
+          name: formValues.recipientName,
+          postalCode: formValues.recipientPostalCode.replace(/\s/g, ''),
+          province: formValues.recipientProvinceObject,
+          regionId: formValues.recipientCountry,
+          type: formValues.recipientAddressType,
+        },
+        option: {
+          memo: formValues.remark,
+          packingFee: formValues.packingFee || 0,
+          vipAccount: formValues.reference,
+        },
+        package: {
+          packages:
+            formValues.packageType === 'env' || formValues.packageType === 'pak'
+              ? [
+                  {
+                    weight: Number(formValues.weight),
+                    insurance: 0,
+                    dimension: {
+                      height: 0,
+                      length: 0,
+                      width: 0,
+                    },
+                  },
+                ]
+              : Array.from({ length: formValues.quantity || 1 }, (_, i) => ({
+                  dimension: {
+                    height: Number(formValues[`dimensions_${i}`].height),
+                    length: Number(formValues[`dimensions_${i}`].length),
+                    width: Number(formValues[`dimensions_${i}`].width),
+                  },
+                  insurance: Number(formValues[`insurance_${i}`]) || 0,
+                  weight: Number(formValues[`weight_${i}`]),
+                })),
+          type: formValues.packageType,
+        },
+      };
+
+      const response = await postShipment(shipmentData);
+      if (response.success) {
+        message.success(`Shipment created successfully. Number: ${response.data?.number}`);
+        setOrderNumber(response.data?.number);
+      } else {
+        message.error('Failed to create shipment. Please try again.');
+      }
+    } catch (error) {
+      console.error('Form validation failed or API call error:', error);
+      message.error('An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (orderNumber) {
+    return <OrderSuccess orderNumber={orderNumber} />;
+  }
 
   return (
     <>
@@ -74,7 +161,37 @@ const ShippingServiceForm: React.FC<ShippingServiceFormProps> = ({
           </Col>
         </Row>
       </Card>
-      <ShipmentForm form={form} onValuesChange={handleFormValuesChange} />
+      <ShippingDetailsForm form={form} createOrder={true} />
+      <PackageInformationForm form={form} />
+      <AdditionalOptionsForm form={form} />
+      <Alert
+        message="Notice"
+        description={
+          <ul style={{ listStyleType: 'disc', paddingLeft: '20px', margin: 0 }}>
+            <li>
+              The quoted prices and ETAs are estimated depending on the information you provide. The
+              final price and transit time may change based on the differences in accurate post
+              code, address, weight, dimensions and the type of services etc.
+            </li>
+            <li>
+              Depending on the characteristics of package, the surcharges (Remote area, Large
+              Package, Additional Handing, Oversize Package, Overweight Package etc.) may apply.
+            </li>
+            <li>
+              All quotes may not include the taxes, duties and additional service fees (Signature,
+              COD etc.).
+            </li>
+            <li>
+              The Guaranteed Delivery Time is not applied to the shipments which contains the
+              surcharge, remote areas and high value.
+            </li>
+          </ul>
+        }
+        type="info"
+        showIcon
+        style={{ marginBottom: 24 }}
+      />
+
       <Affix offsetBottom={0} style={{ width: '100%' }}>
         <div
           style={{
@@ -99,7 +216,7 @@ const ShippingServiceForm: React.FC<ShippingServiceFormProps> = ({
             <Button type="default" onClick={() => form.resetFields()}>
               Reset
             </Button>
-            <Button type="primary" onClick={() => form.submit()}>
+            <Button type="primary" onClick={handleSubmit} loading={loading}>
               Submit
             </Button>
           </Space>
@@ -113,7 +230,7 @@ const CreateOrder: React.FC = () => {
   const { carriers, modelLoading, fetchCarriers } = useModel('carrierModel');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedService, setSelectedService] = useState<VerkType.Service | null>(null);
-  const [formData, setFormData] = useState({});
+  // Remove formData state
   const [selectedCarrier, setSelectedCarrier] = useState<VerkType.Carrier | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -147,10 +264,6 @@ const CreateOrder: React.FC = () => {
 
   const handleReselect = () => {
     setIsModalVisible(true);
-  };
-
-  const handleFormDataChange = (newFormData: any) => {
-    setFormData(newFormData);
   };
 
   const renderCarrierTabs = () => (
@@ -224,8 +337,7 @@ const CreateOrder: React.FC = () => {
               selectedService={selectedService}
               selectedCarrier={selectedCarrier}
               onReselect={handleReselect}
-              formData={formData}
-              onFormDataChange={handleFormDataChange}
+              // Remove formData and onFormDataChange props
             />
           )}
         </>

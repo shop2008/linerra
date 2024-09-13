@@ -36,6 +36,7 @@ declare namespace VerkType {
 
   type QuoteRequest = {
     carrierIds: string[];
+    serviceId: string;
     initiation: Destination;
     destination: Destination;
     option: Option;
@@ -45,6 +46,7 @@ declare namespace VerkType {
   type Destination = {
     address: string;
     address2: string;
+    address3: string;
     city: string;
     company: string;
     mobilePhone: string;
