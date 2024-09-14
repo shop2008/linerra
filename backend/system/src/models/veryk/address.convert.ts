@@ -1,4 +1,4 @@
-import { InitiationApiReq, InitiationReqVO, DestinationApiReq, DestinationReqVO, InitiationDO, DestinationDO } from "./address.entity";
+import { InitiationApiReq, InitiationReqVO, DestinationApiReq, DestinationReqVO, InitiationDO, DestinationDO, AddressApiRes } from "./address.entity";
 
 
 
@@ -30,4 +30,22 @@ export const initiationReqVOToDO = (initiationReqVO: InitiationReqVO): Initiatio
 
 export const destinationReqVOToDO = (destinationReqVO: DestinationReqVO): DestinationDO => {
   return { ...destinationReqVO };
+};
+
+export const addressApiResToInitiationDO = (addressApiRes: AddressApiRes): InitiationDO => {
+  const { region_id, postalcode, ...rest } = addressApiRes;
+  return {
+    regionId: region_id,
+    postalCode: postalcode,
+    ...rest,
+  };
+};
+
+export const addressApiResToDestinationDO = (addressApiRes: AddressApiRes): DestinationDO => {
+  const { region_id, postalcode, ...rest } = addressApiRes;
+  return {
+    regionId: region_id,
+    postalCode: postalcode,
+    ...rest,
+  };
 };

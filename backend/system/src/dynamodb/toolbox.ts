@@ -34,8 +34,8 @@ export const MainTable = new Table({
     },
     GSI2: {
       type: 'global',
-      partitionKey: { name: 'SK', type: 'string' },
-      sortKey: { name: 'PK', type: 'string' },
+      partitionKey: { name: 'GSI2PK', type: 'string' },
+      sortKey: { name: 'GSI2SK', type: 'string' },
     },
   },
   documentClient
@@ -78,14 +78,16 @@ export const Shipment = new Entity({
     //GSI1PK: string().const("SHIPMENT_NO").key().default("SHIPMENT_NO"),
 
 
-    //GSI2PK: string().const("SHIPMENT_NO").key().default("SHIPMENT_NO"),
+    GSI2PK: string().const("SHIPMENT").default("SHIPMENT"),
     //GSI2SK: string().required().transform(prefix('SHIPMENT')).savedAs('GSI2SK').key(),
 
-
+    externalId: string().optional(),
     waybillNumber: string().optional(),
     serviceId: string().required(),
     status: string().enum(...Dicts.shipmentStatus.map(status => status.value)).required(),
 
+    //initiationRegionId: string().optional(),
+    //destinationRegionId: string().optional(),
     initiation: map({
       regionId: string().required(),
       postalCode: string().required(),
@@ -141,6 +143,56 @@ export const Shipment = new Entity({
     option: map({
       memo: string().optional(),
       packingFee: number().optional(),
-    }).required(),
-  }),
+    }).optional(),
+    price: map({
+      msrp: map({
+        code: string().required(),
+        symbol: string().required(),
+        value: string().required(),
+      }).optional(),
+      details: list(map({
+        code: string().required(),
+        description: string().required(),
+        price: map({
+          code: string().required(),
+          symbol: string().required(),
+          value: string().required(),
+        }).required(),
+      })).optional(),
+      charges: list(map({
+        code: string().required(),
+        description: string().required(),
+        price: map({
+          code: string().required(),
+          symbol: string().required(),
+          value: string().required(),
+        }).required(),
+      })).optional(),
+    }).optional(),
+    payments: list(map({
+      dateTime: string().required(),
+      description: string().required(),
+      subtotal: map({
+        code: string().required(),
+        symbol: string().required(),
+        value: string().required(),
+      }).required(),
+    })).optional(),
+    total: map({
+      code: string().required(),
+      symbol: string().required(),
+      value: string().required(),
+    }).optional(),
+    submittedAt: string().optional(),
+  }).and(prevSchema => ({
+    GSI2SK: string().required().link<typeof prevSchema>(
+      ({ number }) => number
+    ),
+    initiationRegionId: string().required().link<typeof prevSchema>(
+      ({ initiation }) => initiation.regionId
+    ),
+    destinationRegionId: string().required().link<typeof prevSchema>(
+      ({ destination }) => destination.regionId
+    ),
+  })),
 });

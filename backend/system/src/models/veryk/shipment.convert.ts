@@ -1,6 +1,6 @@
-import { ShipmentApiReq, ShipmentDO, ShipmentReqVO } from "./shipment.entity";
-import { initiationReqVOToApiReq, destinationReqVOToApiReq, initiationReqVOToDO, destinationReqVOToDO } from "./address.convert";
-import { packageReqVOToApiReq, packageReqVOToDO } from "./package.convert";
+import { ShipmentApiReq, ShipmentApiRes, ShipmentApiUpdateDO, ShipmentDetailResVO, ShipmentDO, ShipmentEditResVO, ShipmentReqVO } from "./shipment.entity";
+import { initiationReqVOToApiReq, destinationReqVOToApiReq, initiationReqVOToDO, destinationReqVOToDO, addressApiResToInitiationDO, addressApiResToDestinationDO } from "./address.convert";
+import { packageApiResToDO, packageDOToEditResVO, packageReqVOToApiReq, packageReqVOToDO } from "./package.convert";
 import { optionReqVOToApiReq } from "./option.convert";
 
 
@@ -36,7 +36,64 @@ export const shipmentReqVOToDO = (shipmentReqVO: ShipmentReqVO): ShipmentDO => {
     serviceId,
     status: "open",
     stationId: "",
-    sortTimestamp: "",
+    //sortTimestamp: "",
     //GSI1PK: "SHIPMENT_NO",
+  };
+};
+
+export const shipmentDOToEditResVO = (shipmentDO: ShipmentDO): ShipmentEditResVO => {
+  return {
+    number: shipmentDO.number,
+    serviceId: shipmentDO.serviceId,
+    initiation: shipmentDO.initiation,
+    destination: shipmentDO.destination,
+    package: packageDOToEditResVO(shipmentDO.package),
+    option: shipmentDO.option,
+  };
+};
+
+export const shipmentApiResToApiUpdateDO = (shipmentApiRes: ShipmentApiRes): ShipmentApiUpdateDO => {
+  return {
+    number: shipmentApiRes.reference_number,
+    externalId: shipmentApiRes.id,
+    waybillNumber: shipmentApiRes.waybill_number,
+    serviceId: shipmentApiRes.service.id,
+    status: shipmentApiRes.state.code as "submitted" | "completed" | "cancelled",
+    //initiationRegionId: shipmentApiRes.initiation_region_id,
+    //destinationRegionId: shipmentApiRes.destination_region_id,
+    //initiation: addressApiResToInitiationDO(shipmentApiRes.initiation.en_US),
+    //destination: addressApiResToDestinationDO(shipmentApiRes.destination.en_US),
+    package: packageApiResToDO(shipmentApiRes.package),
+
+    price: shipmentApiRes.price,
+    payments: Object.values(shipmentApiRes.payments).map(paymentApiRes => ({
+      dateTime: paymentApiRes.datetime,
+      description: paymentApiRes.description,
+      subtotal: paymentApiRes.subtotal,
+    })),
+    total: shipmentApiRes.total,
+    submittedAt: shipmentApiRes.creationtime,
+
+  };
+};
+
+
+export const shipmentDOToDetailResVO = (shipmentDO: ShipmentDO): ShipmentDetailResVO => {
+  return {
+    number: shipmentDO.number,
+    externalId: shipmentDO.externalId!,
+    waybillNumber: shipmentDO.waybillNumber!,
+    serviceId: shipmentDO.serviceId,
+    status: shipmentDO.status,
+    initiationRegionId: shipmentDO.initiationRegionId!,
+    destinationRegionId: shipmentDO.destinationRegionId!,
+    initiation: shipmentDO.initiation,
+    destination: shipmentDO.destination,
+    package: shipmentDO.package,
+    option: shipmentDO.option,
+    price: shipmentDO.price!,
+    payments: shipmentDO.payments!,
+    total: shipmentDO.total!,
+    submittedAt: shipmentDO.submittedAt!,
   };
 };

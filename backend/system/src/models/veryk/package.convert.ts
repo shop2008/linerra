@@ -1,5 +1,5 @@
 import { getDefaultCurrency } from "../../constant/verykConstant";
-import { PackageApiReq, PackageDO, PackageItem, PackageItemDO, PackageReqVO } from "./package.entity";
+import { PackageApiReq, PackageApiRes, PackageDO, PackageEditResVO, PackageItem, PackageItemApiRes, PackageItemDO, PackageReqVO } from "./package.entity";
 
 // export const packageItemReqVOToApiReq = (packageItemReqVO: PackageItemReqVO): PackageItemApiReq => {
 //   return {
@@ -28,5 +28,43 @@ export const packageItemToDO = (packageItem: PackageItem): PackageItemDO => {
     weight,
     dimension,
     insurance: getDefaultCurrency(insurance),
+  }
+}
+
+export const packageDOToEditResVO = (packageDO: PackageDO): PackageEditResVO => {
+  return {
+    type: packageDO.type,
+    packages: packageDO.packages.map(packageItemDOToPackageItem),
+  }
+}
+
+export const packageItemDOToPackageItem = (packageItem: PackageItemDO): PackageItem => {
+  const { weight, dimension, insurance } = packageItem;
+  return {
+    weight,
+    dimension,
+    insurance: Number(insurance.value),
+  }
+}
+
+export const packageApiResToDO = (packageApiRes: PackageApiRes): PackageDO => {
+  const { type, packages } = packageApiRes;
+  return {
+    type,
+    packages: packages.map(packageItemApiResToDO),
+  }
+}
+
+export const packageItemApiResToDO = (packageItemApiRes: PackageItemApiRes): PackageItemDO => {
+  const { waybill_number, weight, dimension, insurance } = packageItemApiRes;
+  return {
+    waybillNumber: waybill_number,
+    weight: Number(weight),
+    dimension: {
+      length: Number(dimension.length),
+      width: Number(dimension.width),
+      height: Number(dimension.height),
+    },
+    insurance: insurance,
   }
 }

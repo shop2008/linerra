@@ -4,13 +4,14 @@ import { ServiceError } from './serviceError';
 import { QuoteApiReq } from '../models/veryk/quote.entity';
 import { ProvinceApiReq } from '../models/veryk.entity';
 import { ShipmentApiReq } from '../models/veryk/shipment.entity';
+import logger from './logger';
 
 const verykApiUrl = process.env.VERYK_API_URL;
 const verykAppId = process.env.VERYK_APP_ID;
 const verykAppSecret = process.env.VERYK_APP_SECRET;
 
 
-const ERROR_CODE = 'VerykApiError';
+const ERROR_CODE = 'Veryk.ApiError';
 
 export function buildUrl(action: string): string {
   const params: Record<string, any> = {
@@ -51,6 +52,7 @@ export function buildUrl(action: string): string {
 
 export function getResponseData(response: any) {
   if (response.data.status !== 1) {
+    //logger.error(response.data);
     throw new ServiceError(response.data.message, ERROR_CODE);
   }
   return response.data.response;
@@ -68,7 +70,6 @@ export async function getRegion(params: { id?: string }, acceptLanguage?: string
 
 export async function getProvince(params: ProvinceApiReq, acceptLanguage?: string) {
   const url = buildUrl('province');
-  console.log(url);
   const headers = acceptLanguage ? { 'Accept-Language': acceptLanguage } : {};
 
   let response = await axios.post(url, params, { headers });

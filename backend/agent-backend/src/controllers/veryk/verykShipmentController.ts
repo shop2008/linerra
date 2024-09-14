@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { VerykShipmentService } from '@linerra/system/src/services/veryk/verykShipmentService';
 import { QuoteResVO } from '@linerra/system/src/models/veryk/quote.entity';
 import { shipmentDetail, shipmentList } from 'system/src/utils/verykUtils';
+import { shipmentDOToDetailResVO, shipmentDOToEditResVO } from 'system/src/models/veryk/shipment.convert';
+import _ from 'lodash';
 
 const verykShipmentService = VerykShipmentService.instance;
 
@@ -24,12 +26,23 @@ export class VerykShipmentController {
 
   async get(req: Request, res: Response) {
     const shipment = await verykShipmentService.get(req.params.number);
-    res.ok(shipment);
+    res.ok(shipmentDOToEditResVO(shipment));
+  }
+
+  async getDetail(req: Request, res: Response) {
+    const shipment = await verykShipmentService.get(req.params.number);
+    res.ok(shipmentDOToDetailResVO(shipment));
   }
 
   async getPage(req: Request, res: Response) {
-    const shipments = await verykShipmentService.getPage(Number(req.query.limit), req.context.user);
-    res.ok(shipments);
+
+    const shipments = await verykShipmentService.getPage({
+      limit: Number(req.query.limit) || 10,
+      keyword: req.query.keyword as string,
+      status: req.query.status as string,
+      dateRange: [req.query.startDate as string || new Date(new Date().setMonth(new Date().getMonth() - 3)).toISOString(), req.query.endDate as string || new Date().toISOString()]
+    }, req.context.user);
+    res.ok(shipments.map(shipment => shipmentDOToDetailResVO(shipment)));
   }
 
   async submit(req: Request, res: Response) {

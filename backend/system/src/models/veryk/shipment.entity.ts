@@ -27,6 +27,7 @@ export interface ShipmentApiReq {
 
 export interface ShipmentDO {
   number: string;
+  externalId?: string;
   waybillNumber?: string;
   serviceId: string;
   status: "open" | "submitted" | "completed" | "cancelled";
@@ -42,7 +43,26 @@ export interface ShipmentDO {
   submittedAt?: string;
 
   stationId: string;
-  sortTimestamp: string;
+  //sortTimestamp: string;
+  //GSI1PK: "SHIPMENT_NO";
+}
+
+export interface ShipmentApiUpdateDO {
+  number: string;
+  externalId: string;
+  waybillNumber: string;
+  serviceId: string;
+  status: "submitted" | "completed" | "cancelled";
+  //initiationRegionId: string;
+  //destinationRegionId: string;
+  //initiation: InitiationDO;
+  //destination: DestinationDO;
+  package: PackageDO;
+  price: Price;
+  payments: PaymentDO[];
+  total: Currency;
+  submittedAt: string;
+
   //GSI1PK: "SHIPMENT_NO";
 }
 
@@ -61,6 +81,7 @@ export interface ShipmentEditResVO {
 
 export interface ShipmentDetailResVO {
   number: string;
+  externalId: string;
   waybillNumber: string;
   serviceId: string;
   status: "open" | "submitted" | "completed" | "cancelled";
@@ -78,8 +99,8 @@ export interface ShipmentDetailResVO {
 
 export interface Price {
   msrp?: Currency;
-  details: PriceDetail[];
-  charges: PriceDetail[];
+  details?: PriceDetail[];
+  charges?: PriceDetail[];
 }
 
 export interface PriceDetail {
